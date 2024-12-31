@@ -253,4 +253,15 @@ public class SysUserController extends BaseController
     {
         return success(deptService.selectDeptTreeList(dept));
     }
+
+    /**
+     * 根据部门id获取用户列表
+     */
+    @PreAuthorize("@ss.hasPermi('system:user:list')")
+    @GetMapping("/dept/{deptId}")
+    public AjaxResult listByDeptId(@PathVariable Long deptId)
+    {
+        List<SysUser> list = userService.selectUserListByDeptId(deptId);
+        return AjaxResult.success(list);
+    }
 }

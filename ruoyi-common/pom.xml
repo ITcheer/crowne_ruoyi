@@ -119,6 +119,13 @@
             <artifactId>javax.servlet-api</artifactId>
         </dependency>
 
+        <!-- azrue blob组件 -->
+        <dependency>
+            <groupId>com.azure</groupId>
+            <artifactId>azure-storage-blob</artifactId>
+            <version>12.14.1</version>
+        </dependency>
+
     </dependencies>
 
 </project>

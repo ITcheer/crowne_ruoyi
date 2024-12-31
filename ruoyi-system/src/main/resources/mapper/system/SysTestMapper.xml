@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.SysTestMapper">
+    
+    <resultMap type="com.ruoyi.system.domain.SysTest" id="SysTestResult">
+        <id property="testId" column="test_id" />
+        <result property="testName" column="test_name" />
+        <result property="testKey" column="test_key" />
+        <result property="testValue" column="test_value" />
+        <result property="remark" column="remark" />
+        <result property="createBy" column="create_by" />
+        <result property="createTime" column="create_time" />
+        <result property="updateBy" column="update_by" />
+        <result property="updateTime" column="update_time" />
+        <result property="status" column="status" />
+    </resultMap>
+    
+    <sql id="selectTestVo">
+        select test_id, test_name, test_key, test_value, remark, create_by, create_time, update_by, update_time, status 
+        from sys_test
+    </sql>
+    
+    <!-- 查询条件 -->
+    <sql id="sqlwhereSearch">
+        <where>
+            <if test="testId !=null">
+                and test_id = #{testId}
+            </if>
+            <if test="testKey !=null and testKey != ''">
+                and test_key = #{testKey}
+            </if>
+        </where>
+    </sql>
+    
+    <select id="selectTest" parameterType="com.ruoyi.system.domain.SysTest" resultMap="SysTestResult">
+        <include refid="selectTestVo"/>
+        <include refid="sqlwhereSearch"/>
+    </select>
+    
+    <select id="selectTestList" parameterType="com.ruoyi.system.domain.SysTest" resultMap="SysTestResult">
+        <include refid="selectTestVo"/>
+        <where>
+            <if test="testName != null and testName != ''">
+                AND test_name like concat('%', #{testName}, '%')
+            </if>
+            <if test="testKey != null and testKey != ''">
+                AND test_key like concat('%', #{testKey}, '%')
+            </if>
+            <if test="params.beginTime != null and params.beginTime != ''">
+                and date_format(create_time,'%Y%m%d') &gt;= date_format(#{params.beginTime},'%Y%m%d')
+            </if>
+            <if test="params.endTime != null and params.endTime != ''">
+                and date_format(create_time,'%Y%m%d') &lt;= date_format(#{params.endTime},'%Y%m%d')
+            </if>
+        </where>
+    </select>
+    
+    <select id="selectTestById" parameterType="Long" resultMap="SysTestResult">
+        <include refid="selectTestVo"/>
+        where test_id = #{testId}
+    </select>
+    
+    <select id="checkTestKeyUnique" parameterType="String" resultMap="SysTestResult">
+        <include refid="selectTestVo"/>
+        where test_key = #{testKey} limit 1
+    </select>
+    
+    <insert id="insertTest" parameterType="com.ruoyi.system.domain.SysTest">
+        insert into sys_test (
+            <if test="testName != null and testName != '' ">test_name,</if>
+            <if test="testKey != null and testKey != '' ">test_key,</if>
+            <if test="testValue != null and testValue != '' ">test_value,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="remark != null and remark != ''">remark,</if>
+            <if test="status != null and status != ''">status,</if>
+            create_time
+        )values(
+            <if test="testName != null and testName != ''">#{testName},</if>
+            <if test="testKey != null and testKey != ''">#{testKey},</if>
+            <if test="testValue != null and testValue != ''">#{testValue},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="remark != null and remark != ''">#{remark},</if>
+            <if test="status != null and status != ''">#{status},</if>
+            sysdate()
+        )
+    </insert>
+    
+    <update id="updateTest" parameterType="com.ruoyi.system.domain.SysTest">
+        update sys_test 
+        <set>
+            <if test="testName != null and testName != ''">test_name = #{testName},</if>
+            <if test="testKey != null and testKey != ''">test_key = #{testKey},</if>
+            <if test="testValue != null and testValue != ''">test_value = #{testValue},</if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="status != null and status != ''">status = #{status},</if>
+            update_time = sysdate()
+        </set>
+        where test_id = #{testId}
+    </update>
+    
+    <delete id="deleteTestById" parameterType="Long">
+        delete from sys_test where test_id = #{testId}
+    </delete>
+    
+    <delete id="deleteTestByIds" parameterType="Long">
+        delete from sys_test where test_id in 
+        <foreach item="testId" collection="array" open="(" separator="," close=")">
+            #{testId}
+        </foreach>
+    </delete>
+    
+</mapper>

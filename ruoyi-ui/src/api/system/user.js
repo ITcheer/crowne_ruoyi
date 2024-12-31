@@ -134,3 +134,11 @@ export function deptTreeSelect() {
     method: 'get'
   })
 }
+
+// 用部门id查询用户
+export function listUserByDeptId(deptId) {
+  return request({
+    url: '/system/user/dept/' + deptId,
+    method: 'get'
+  })
+}

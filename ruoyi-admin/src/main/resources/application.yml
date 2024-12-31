@@ -12,6 +12,10 @@ ruoyi:
   addressEnabled: false
   # 验证码类型 math 数字计算 char 字符验证
   captchaType: math
+  # Azure连接字符串
+  azureConnectionString: DefaultEndpointsProtocol=https;AccountName=schoolmaintenancestorage;AccountKey=qdqowwP9fmLzDFfiGgplJ1YkrwkL5jc33igyRI2yHkzEh1jpoTD0BfkPV50zumbqW0E61e64bise+AStL3mCbA==;EndpointSuffix=core.windows.net
+  # Azure容器名称
+  azureContainerName: schoolblodfiles
 
 # 开发环境配置
 server:
@@ -28,8 +32,10 @@ server:
     threads:
       # tomcat最大线程数，默认为200
       max: 800
+      #max: 200
       # Tomcat启动初始化的线程数，默认值10
       min-spare: 100
+      #min-spare: 10
 
 # 日志配置
 logging:
@@ -68,13 +74,13 @@ spring:
   # redis 配置
   redis:
     # 地址
-    host: localhost
+    host: r-wz94pfd75tcee89ogupd.redis.rds.aliyuncs.com
     # 端口，默认为6379
     port: 6379
     # 数据库索引
     database: 0
     # 密码
-    password:
+    password: wr@123456
     # 连接超时时间
     timeout: 10s
     lettuce:

@@ -30,6 +30,12 @@ public class RuoYiConfig
     /** 验证码类型 */
     private static String captchaType;
 
+    /** Azure Blob Storage connection string */
+    private static String azureConnectionString;
+
+    /** Azure Blob Storage container name */
+    private static String azureContainerName;
+
     public String getName()
     {
         return name;
@@ -86,6 +92,22 @@ public class RuoYiConfig
 
     public void setCaptchaType(String captchaType) {
         RuoYiConfig.captchaType = captchaType;
+    }
+
+    public static String getAzureConnectionString() {
+        return azureConnectionString;
+    }
+
+    public void setAzureConnectionString(String azureConnectionString) {
+        RuoYiConfig.azureConnectionString = azureConnectionString;
+    }
+
+    public static String getAzureContainerName() {
+        return azureContainerName;
+    }
+
+    public void setAzureContainerName(String azureContainerName) {
+        RuoYiConfig.azureContainerName = azureContainerName;
     }
 
     /**

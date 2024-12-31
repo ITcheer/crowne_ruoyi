@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.SysPatrolLocationMapper">
+
+    <resultMap type="com.ruoyi.system.domain.SysPatrolLocation" id="SysPatrolLocationResult">
+        <id property="id" column="ID" />
+        <result property="locationName" column="Location_Name" />
+        <result property="updateTime" column="Update_Time" />
+    </resultMap>
+
+    <sql id="selectPatrolLocationVo">
+        select ID, Location_Name, Update_Time
+        from sys_patrol_location
+    </sql>
+
+    <!-- 查询条件 -->
+    <sql id="sqlwhereSearch">
+        <where>
+            <if test="id != null">
+                and ID = #{id}
+            </if>
+            <if test="locationName != null and locationName != ''">
+                and Location_Name = #{locationName}
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectPatrolLocation" parameterType="com.ruoyi.system.domain.SysPatrolLocation" resultMap="SysPatrolLocationResult">
+        <include refid="selectPatrolLocationVo"/>
+        <include refid="sqlwhereSearch"/>
+        order by ID
+    </select>
+
+    <select id="selectPatrolLocationList" parameterType="com.ruoyi.system.domain.SysPatrolLocation" resultMap="SysPatrolLocationResult">
+        <include refid="selectPatrolLocationVo"/>
+        <where>
+            <if test="locationName != null and locationName != ''">
+                AND Location_Name like concat('%', #{locationName}, '%')
+            </if>
+        </where>
+        order by ID
+    </select>
+
+    <select id="selectPatrolLocationById" parameterType="String" resultMap="SysPatrolLocationResult">
+        <include refid="selectPatrolLocationVo"/>
+        where ID = #{id}
+        order by ID
+    </select>
+
+    <insert id="insertPatrolLocation" parameterType="com.ruoyi.system.domain.SysPatrolLocation">
+        insert into sys_patrol_location (
+            ID, Location_Name
+        ) values (
+            #{id}, #{locationName}
+        )
+    </insert>
+
+    <update id="updatePatrolLocation" parameterType="com.ruoyi.system.domain.SysPatrolLocation">
+        update sys_patrol_location 
+        <set>
+            <if test="locationName != null and locationName != ''">Location_Name = #{locationName},</if>
+        </set>
+        where ID = #{id}
+    </update>
+
+    <delete id="deletePatrolLocationById" parameterType="String">
+        delete from sys_patrol_location where ID = #{id}
+    </delete>
+
+    <delete id="deletePatrolLocationByIds" parameterType="String">
+        delete from sys_patrol_location where ID in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

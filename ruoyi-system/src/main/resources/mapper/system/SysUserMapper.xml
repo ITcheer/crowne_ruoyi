@@ -142,6 +142,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 		select user_id, email from sys_user where email = #{email} and del_flag = '0' limit 1
 	</select>
 	
+	<select id="selectUserListByDeptId" parameterType="Long" resultMap="SysUserResult">
+        SELECT u.user_id, u.dept_id, u.user_name, u.nick_name, u.email, u.phonenumber, u.sex, u.status, u.create_time
+        FROM sys_user u
+        WHERE u.dept_id = #{deptId} AND u.del_flag = '0'
+    </select>
+	
 	<insert id="insertUser" parameterType="SysUser" useGeneratedKeys="true" keyProperty="userId">
  		insert into sys_user(
  			<if test="userId != null and userId != 0">user_id,</if>
@@ -218,4 +224,4 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         </foreach> 
  	</delete>
 	
-</mapper> 
+</mapper>

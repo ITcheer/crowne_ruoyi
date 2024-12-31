@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.SysPatrolTaskMapper">
+
+    <resultMap type="com.ruoyi.system.domain.SysPatrolTask" id="SysPatrolTaskResult">
+        <id property="id" column="ID" />
+        <result property="taskLocationIds" column="Task_Location_IDs" />
+        <result property="taskName" column="Task_Name" />
+        <result property="taskContent" column="Task_Content" />
+        <result property="taskTimePeriod" column="Task_Time_Period" />
+        <result property="taskCycle" column="Task_Cycle" />
+        <result property="taskStartDate" column="Task_Start_Date" />
+        <result property="taskEndDate" column="Task_End_Date" />
+        <result property="taskParticipantIds" column="Task_Participant_IDs" />
+        <result property="updateTime" column="Update_Time" />
+    </resultMap>
+
+    <sql id="selectPatrolTaskVo">
+        select ID, Task_Location_IDs, Task_Name, Task_Content, Task_Time_Period, Task_Cycle, Task_Start_Date, Task_End_Date, Task_Participant_IDs, Update_Time
+        from sys_patrol_task
+    </sql>
+
+    <!-- 查询条件 -->
+    <sql id="sqlwhereSearch">
+        <where>
+            <if test="id != null">
+                and ID = #{id}
+            </if>
+            <if test="taskName != null and taskName != ''">
+                and Task_Name = #{taskName}
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectPatrolTask" parameterType="com.ruoyi.system.domain.SysPatrolTask" resultMap="SysPatrolTaskResult">
+        <include refid="selectPatrolTaskVo"/>
+        <include refid="sqlwhereSearch"/>
+        order by Task_Start_Date desc
+    </select>
+
+    <select id="selectPatrolTaskList" parameterType="com.ruoyi.system.domain.SysPatrolTask" resultMap="SysPatrolTaskResult">
+        <include refid="selectPatrolTaskVo"/>
+        <where>
+            <if test="taskName != null and taskName != ''">
+                AND Task_Name like concat('%', #{taskName}, '%')
+            </if>
+            <if test="taskContent != null and taskContent != ''">
+                AND Task_Content like concat('%', #{taskContent}, '%')
+            </if>
+            <if test="taskCycle != null and taskCycle != ''">
+                AND Task_Cycle = #{taskCycle}
+            </if>
+            <if test="taskParticipantIds != null and taskParticipantIds != ''">
+                AND Task_Participant_IDs like concat('%', #{taskParticipantIds}, '%')
+            </if>
+            <if test="params.beginTime != null and params.beginTime != ''">
+                and date_format(Task_Start_Date,'%Y%m%d') &gt;= date_format(#{params.beginTime},'%Y%m%d')
+            </if>
+            <if test="params.endTime != null and params.endTime != ''">
+                and date_format(Task_End_Date,'%Y%m%d') &lt;= date_format(#{params.endTime},'%Y%m%d')
+            </if>
+        </where>
+        order by Task_Start_Date desc
+    </select>
+
+    <select id="selectPatrolTaskById" parameterType="String" resultMap="SysPatrolTaskResult">
+        <include refid="selectPatrolTaskVo"/>
+        where ID = #{id}
+        order by Task_Start_Date desc
+    </select>
+
+    <insert id="insertPatrolTask" parameterType="com.ruoyi.system.domain.SysPatrolTask">
+        insert into sys_patrol_task (
+            ID, Task_Location_IDs, Task_Name, Task_Content, Task_Time_Period, Task_Cycle, Task_Start_Date, Task_End_Date, Task_Participant_IDs
+        ) values (
+            #{id}, #{taskLocationIds}, #{taskName}, #{taskContent}, #{taskTimePeriod}, #{taskCycle}, #{taskStartDate}, #{taskEndDate}, #{taskParticipantIds}
+        )
+    </insert>
+
+    <update id="updatePatrolTask" parameterType="com.ruoyi.system.domain.SysPatrolTask">
+        update sys_patrol_task 
+        <set>
+            <if test="taskLocationIds != null and taskLocationIds != ''">Task_Location_IDs = #{taskLocationIds},</if>
+            <if test="taskName != null and taskName != ''">Task_Name = #{taskName},</if>
+            <if test="taskContent != null">Task_Content = #{taskContent},</if>
+            <if test="taskTimePeriod != null and taskTimePeriod != ''">Task_Time_Period = #{taskTimePeriod},</if>
+            <if test="taskCycle != null and taskCycle != ''">Task_Cycle = #{taskCycle},</if>
+            <if test="taskStartDate != null">Task_Start_Date = #{taskStartDate},</if>
+            <if test="taskEndDate != null">Task_End_Date = #{taskEndDate},</if>
+            <if test="taskParticipantIds != null and taskParticipantIds != ''">Task_Participant_IDs = #{taskParticipantIds},</if>
+        </set>
+        where ID = #{id}
+    </update>
+
+    <delete id="deletePatrolTaskById" parameterType="String">
+        delete from sys_patrol_task where ID = #{id}
+    </delete>
+
+    <delete id="deletePatrolTaskByIds" parameterType="String">
+        delete from sys_patrol_task where ID in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>
