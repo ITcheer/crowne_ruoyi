@@ -13,9 +13,9 @@ ruoyi:
   # 验证码类型 math 数字计算 char 字符验证
   captchaType: math
   # Azure连接字符串
-  azureConnectionString: DefaultEndpointsProtocol=https;AccountName=schoolmaintenancestorage;AccountKey=qdqowwP9fmLzDFfiGgplJ1YkrwkL5jc33igyRI2yHkzEh1jpoTD0BfkPV50zumbqW0E61e64bise+AStL3mCbA==;EndpointSuffix=core.windows.net
+  azureConnectionString: ${AZURE_CONNECTION_STRING}
   # Azure容器名称
-  azureContainerName: schoolblodfiles
+  azureContainerName: ${AZURE_CONTAINER_NAME}
 
 # 开发环境配置
 server:
