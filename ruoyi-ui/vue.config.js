@@ -71,6 +71,10 @@ module.exports = {
         deleteOriginalAssets: false                    // 压缩后删除原文件
       })
     ],
+    //azrue路由配置
+    devServer: {
+      historyApiFallback: true,
+    }
   },
   chainWebpack(config) {
     config.plugins.delete('preload') // TODO: need test
