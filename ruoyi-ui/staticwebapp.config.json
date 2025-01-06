@@ -29,10 +29,6 @@
       "rewrite": "/index.html"
     },
     {
-      "route": "/prod-api/login",
-      "rewrite": "/index.html"
-    },
-    {
       "route": "/static/css/*"
     },
     {
