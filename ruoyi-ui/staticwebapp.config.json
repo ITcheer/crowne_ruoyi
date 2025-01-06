@@ -1,22 +1,6 @@
 {
   "routes": [
     {
-      "route": "/",
-      "rewrite": "/index.html"
-    },
-    {
-      "route": "/login",
-      "rewrite": "/index.html"
-    },
-    {
-      "route": "/register",
-      "rewrite": "/index.html"
-    },
-    {
-      "route": "/404",
-      "rewrite": "/index.html"
-    },
-    {
       "route": "/401",
       "rewrite": "/index.html"
     },
@@ -42,6 +26,29 @@
     },
     {
       "route": "/tool/gen-edit/index/*",
+      "rewrite": "/index.html"
+    },
+    {
+      "route": "/prod-api/login",
+      "rewrite": "/index.html"
+    },
+    {
+      "route": "/static/css/*"
+    },
+    {
+      "route": "/static/js/*"
+    },
+    {
+      "route": "/static/img/*"
+    },
+    {
+      "route": "/static/fonts/*"
+    },
+    {
+      "route": "/static/media/*"
+    },
+    {
+      "route": "/*",
       "rewrite": "/index.html"
     }
   ],
