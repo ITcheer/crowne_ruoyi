@@ -59,6 +59,12 @@
   },
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": ["/static/*"]
+    "exclude": [
+      "/dist/static/css/*",
+      "/dist/static/js/*",
+      "/dist/static/img/*",
+      "/dist/static/fonts/*",
+      "/dist/static/media/*"
+    ]
   }
 }
