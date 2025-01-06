@@ -1,0 +1,52 @@
+{
+  "routes": [
+    {
+      "route": "/",
+      "rewrite": "/index.html"
+    },
+    {
+      "route": "/login",
+      "rewrite": "/index.html"
+    },
+    {
+      "route": "/register",
+      "rewrite": "/index.html"
+    },
+    {
+      "route": "/404",
+      "rewrite": "/index.html"
+    },
+    {
+      "route": "/401",
+      "rewrite": "/index.html"
+    },
+    {
+      "route": "/user/profile",
+      "rewrite": "/index.html"
+    },
+    {
+      "route": "/system/user-auth/role/*",
+      "rewrite": "/index.html"
+    },
+    {
+      "route": "/system/role-auth/user/*",
+      "rewrite": "/index.html"
+    },
+    {
+      "route": "/system/dict-data/index/*",
+      "rewrite": "/index.html"
+    },
+    {
+      "route": "/monitor/job-log/index/*",
+      "rewrite": "/index.html"
+    },
+    {
+      "route": "/tool/gen-edit/index/*",
+      "rewrite": "/index.html"
+    },
+    {
+      "route": "/*",
+      "rewrite": "/index.html"
+    }
+  ]
+}
