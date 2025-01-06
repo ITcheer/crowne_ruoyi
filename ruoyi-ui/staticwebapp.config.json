@@ -48,8 +48,7 @@
       "route": "/static/media/*"
     },
     {
-      "route": "/*",
-      "rewrite": "/index.html"
+      "route": "/*"
     }
   ],
   "mimeTypes": {
