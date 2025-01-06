@@ -51,10 +51,14 @@
   ],
   "mimeTypes": {
     ".js": "application/javascript",
-    ".css": "text/css"
+    ".css": "text/css",
+    ".html": "text/html",
+    ".json": "application/json",
+    ".map": "application/json",
+    ".txt": "text/plain"
   },
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": ["/static/*"]
+    "exclude": ["/static/css/*.css", "/static/js/*.js", "/static/img/*.png", "/static/img/*.jpg", "/static/img/*.gif", "/static/img/*.ico"]
   }
 }
