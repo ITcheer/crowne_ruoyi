@@ -60,11 +60,11 @@
   "navigationFallback": {
     "rewrite": "/index.html",
     "exclude": [
-      "/dist/static/css/*",
-      "/dist/static/js/*",
-      "/dist/static/img/*",
-      "/dist/static/fonts/*",
-      "/dist/static/media/*"
+      "/static/css/*",
+      "/static/js/*",
+      "/static/img/*",
+      "/static/fonts/*",
+      "/static/media/*"
     ]
   }
 }
