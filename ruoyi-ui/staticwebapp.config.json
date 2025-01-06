@@ -43,6 +43,10 @@
     {
       "route": "/tool/gen-edit/index/*",
       "rewrite": "/index.html"
+    },
+    {
+      "route": "/*",
+      "rewrite": "/index.html"
     }
   ],
   "mimeTypes": {
