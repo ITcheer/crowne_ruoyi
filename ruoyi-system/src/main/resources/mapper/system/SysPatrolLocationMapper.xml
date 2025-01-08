@@ -7,11 +7,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <resultMap type="com.ruoyi.system.domain.SysPatrolLocation" id="SysPatrolLocationResult">
         <id property="id" column="ID" />
         <result property="locationName" column="Location_Name" />
+        <result property="locationDescription" column="Location_Description" />
         <result property="updateTime" column="Update_Time" />
     </resultMap>
 
     <sql id="selectPatrolLocationVo">
-        select ID, Location_Name, Update_Time
+        select ID, Location_Name, Location_Description, Update_Time
         from sys_patrol_location
     </sql>
 
@@ -51,9 +52,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <insert id="insertPatrolLocation" parameterType="com.ruoyi.system.domain.SysPatrolLocation">
         insert into sys_patrol_location (
-            ID, Location_Name
+            ID, Location_Name, Location_Description, Update_Time
         ) values (
-            #{id}, #{locationName}
+            #{id}, #{locationName}, #{locationDescription}, #{updateTime}
         )
     </insert>
 
@@ -61,6 +62,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         update sys_patrol_location 
         <set>
             <if test="locationName != null and locationName != ''">Location_Name = #{locationName},</if>
+            <if test="locationDescription != null">Location_Description = #{locationDescription},</if>
+            <if test="updateTime != null">Update_Time = #{updateTime},</if>
         </set>
         where ID = #{id}
     </update>

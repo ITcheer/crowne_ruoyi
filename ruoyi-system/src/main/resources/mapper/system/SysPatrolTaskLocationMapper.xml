@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.SysPatrolTaskLocationMapper">
+    <!-- 对应表: SysPatrolTaskLocation -->
+    <resultMap id="SysPatrolTaskLocationResult" type="com.ruoyi.system.domain.SysPatrolTaskLocation">
+        <id property="taskId" column="Task_ID" />
+        <result property="locationId" column="Location_ID" />
+    </resultMap>
+
+    <sql id="selectPatrolTaskLocationVo">
+        select Task_ID, Location_ID
+        from sys_patrol_task_location
+    </sql>
+
+    <select id="selectPatrolTaskLocation" parameterType="com.ruoyi.system.domain.SysPatrolTaskLocation" resultMap="SysPatrolTaskLocationResult">
+        <include refid="selectPatrolTaskLocationVo"/>
+        <where>
+            <if test="taskId != null">
+                and Task_ID = #{taskId}
+            </if>
+            <if test="locationId != null">
+                and Location_ID = #{locationId}
+            </if>
+        </where>
+        order by Task_ID, Location_ID
+    </select>
+
+    <insert id="insertPatrolTaskLocation" parameterType="com.ruoyi.system.domain.SysPatrolTaskLocation">
+        insert into sys_patrol_task_location (
+            Task_ID, Location_ID
+        ) values (
+            #{taskId}, #{locationId}
+        )
+    </insert>
+
+    <insert id="batchInsertPatrolTaskLocation" parameterType="java.util.List">
+        insert into sys_patrol_task_location (Task_ID, Location_ID)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.taskId}, #{item.locationId})
+        </foreach>
+    </insert>
+
+    <delete id="deletePatrolTaskLocationById" parameterType="com.ruoyi.system.domain.SysPatrolTaskLocation">
+        delete from sys_patrol_task_location where Task_ID = #{taskId} and Location_ID = #{locationId}
+    </delete>
+
+    <delete id="deletePatrolTaskLocationByTaskId" parameterType="java.lang.String">
+        delete from sys_patrol_task_location where Task_ID = #{taskId}
+    </delete>
+</mapper>

@@ -2,6 +2,7 @@ package com.ruoyi.system.domain;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
@@ -19,10 +20,6 @@ public class SysPatrolTask extends BaseEntity
     /** 任务ID */
     @Excel(name = "任务ID")
     private String id;
-
-    /** 任务地点ID */
-    @Excel(name = "任务地点ID")
-    private String taskLocationIds;
 
     /** 任务名称 */
     @Excel(name = "任务名称")
@@ -48,15 +45,17 @@ public class SysPatrolTask extends BaseEntity
     @Excel(name = "任务结束日期")
     private Date taskEndDate;
 
-    /** 任务参与人员ID */
-    @Excel(name = "任务参与人员ID")
-    private String taskParticipantIds;
-
     /** 更新时间 */
     private Date updateTime;
 
     /** 请求参数 */
     private Map<String, Object> params;
+
+    /** 任务地点列表 */
+    private List<SysPatrolTaskLocation> locations;
+
+    /** 任务参与人员列表 */
+    private List<SysPatrolTaskParticipant> participants;
 
     public SysPatrolTask()
     {
@@ -69,14 +68,6 @@ public class SysPatrolTask extends BaseEntity
 
     public void setId(String id) {
         this.id = id;
-    }
-
-    public String getTaskLocationIds() {
-        return taskLocationIds;
-    }
-
-    public void setTaskLocationIds(String taskLocationIds) {
-        this.taskLocationIds = taskLocationIds;
     }
 
     public String getTaskName() {
@@ -127,14 +118,6 @@ public class SysPatrolTask extends BaseEntity
         this.taskEndDate = taskEndDate;
     }
 
-    public String getTaskParticipantIds() {
-        return taskParticipantIds;
-    }
-
-    public void setTaskParticipantIds(String taskParticipantIds) {
-        this.taskParticipantIds = taskParticipantIds;
-    }
-
     public Date getUpdateTime() {
         return updateTime;
     }
@@ -157,20 +140,36 @@ public class SysPatrolTask extends BaseEntity
         this.params = params;
     }
 
+    public List<SysPatrolTaskLocation> getLocations() {
+        return locations;
+    }
+
+    public void setLocations(List<SysPatrolTaskLocation> locations) {
+        this.locations = locations;
+    }
+
+    public List<SysPatrolTaskParticipant> getParticipants() {
+        return participants;
+    }
+
+    public void setParticipants(List<SysPatrolTaskParticipant> participants) {
+        this.participants = participants;
+    }
+
     @Override
     public String toString() {
         return new ToStringBuilder(this, ToStringStyle.MULTI_LINE_STYLE)
             .append("id", getId())
-            .append("taskLocationIds", getTaskLocationIds())
             .append("taskName", getTaskName())
             .append("taskContent", getTaskContent())
             .append("taskTimePeriod", getTaskTimePeriod())
             .append("taskCycle", getTaskCycle())
             .append("taskStartDate", getTaskStartDate())
             .append("taskEndDate", getTaskEndDate())
-            .append("taskParticipantIds", getTaskParticipantIds())
             .append("updateTime", getUpdateTime())
             .append("params", getParams())
+            .append("locations", getLocations())
+            .append("participants", getParticipants())
             .toString();
     }
 }

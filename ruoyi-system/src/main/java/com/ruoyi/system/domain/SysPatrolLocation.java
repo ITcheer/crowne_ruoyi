@@ -24,6 +24,10 @@ public class SysPatrolLocation extends BaseEntity
     @Excel(name = "地点名称")
     private String locationName;
 
+    /** 地点描述 */
+    @Excel(name = "地点描述")
+    private String locationDescription;
+
     /** 请求参数 */
     private Map<String, Object> params;
 
@@ -49,6 +53,14 @@ public class SysPatrolLocation extends BaseEntity
 
     public void setLocationName(String locationName) {
         this.locationName = locationName;
+    }
+
+    public String getLocationDescription() {
+        return locationDescription;
+    }
+
+    public void setLocationDescription(String locationDescription) {
+        this.locationDescription = locationDescription;
     }
 
     public Map<String, Object> getParams()
@@ -78,6 +90,7 @@ public class SysPatrolLocation extends BaseEntity
         return new ToStringBuilder(this, ToStringStyle.MULTI_LINE_STYLE)
             .append("id", getId())
             .append("locationName", getLocationName())
+            .append("locationDescription", getLocationDescription())
             .append("params", getParams())
             .append("updateTime", getUpdateTime())
             .toString();

@@ -75,6 +75,12 @@
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column v-if="visibleColumns.includes('id')" label="地点编号" prop="id" width="120" sortable />
       <el-table-column v-if="visibleColumns.includes('locationName')" label="地点名称" prop="locationName" :show-overflow-tooltip="true" width="150" sortable />
+      <el-table-column v-if="visibleColumns.includes('locationDescription')" label="地点描述" prop="locationDescription" :show-overflow-tooltip="true" width="200" sortable />
+      <el-table-column v-if="visibleColumns.includes('updateTime')" label="更新时间" prop="updateTime" width="180" sortable>
+        <template slot-scope="scope">
+          {{ formatDate(scope.row.updateTime) }}
+        </template>
+      </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-dropdown>
@@ -110,6 +116,9 @@
         </el-form-item>
         <el-form-item label="地点名称" prop="locationName">
           <el-input v-model="form.locationName" placeholder="请输入地点名称" />
+        </el-form-item>
+        <el-form-item label="地点描述" prop="locationDescription">
+          <el-input v-model="form.locationDescription" placeholder="请输入地点描述" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -157,7 +166,9 @@ export default {
       // 表单参数
       form: {
         id: this.generateLocationId(),
-        locationName: undefined
+        locationName: undefined,
+        locationDescription: undefined,
+        updateTime: new Date()
       },
       // 表单校验
       rules: {
@@ -165,7 +176,7 @@ export default {
           { required: true, message: "地点名称不能为空", trigger: "blur" }
         ]
       },
-      visibleColumns: ['id', 'locationName'],
+      visibleColumns: ['id', 'locationName', 'locationDescription', 'updateTime'],
       sortParams: {
         prop: 'id',
         order: 'ascending'
@@ -205,7 +216,9 @@ export default {
     reset() {
       this.form = {
         id: this.generateLocationId(),
-        locationName: undefined
+        locationName: undefined,
+        locationDescription: undefined,
+        updateTime: new Date()
       };
       this.resetForm("form");
     },
@@ -253,6 +266,7 @@ export default {
     submitForm: function() {
       this.$refs["form"].validate(valid => {
         if (valid) {
+          this.form.updateTime = new Date();
           if (this.isUpdate()) {
             updatePatrolLocation(this.form).then(response => {
               this.$modal.msgSuccess("修改成功");
@@ -302,6 +316,16 @@ export default {
       }
       const maxId = Math.max(...this.patrolLocationList.map(location => parseInt(location.id, 10)));
       return (maxId + 1).toString();
+    },
+    formatDate(date) {
+      const d = new Date(date);
+      const year = d.getFullYear();
+      const month = (d.getMonth() + 1).toString().padStart(2, '0');
+      const day = d.getDate().toString().padStart(2, '0');
+      const hours = d.getHours().toString().padStart(2, '0');
+      const minutes = d.getMinutes().toString().padStart(2, '0');
+      const seconds = d.getSeconds().toString().padStart(2, '0');
+      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
     }
   }
 };

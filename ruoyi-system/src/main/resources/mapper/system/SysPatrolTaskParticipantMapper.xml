@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.SysPatrolTaskParticipantMapper">
+    <!-- 对应表: SysPatrolTaskParticipant -->
+    <resultMap id="SysPatrolTaskParticipantResult" type="com.ruoyi.system.domain.SysPatrolTaskParticipant">
+        <id property="taskId" column="Task_ID" />
+        <result property="participantId" column="Participant_ID" />
+    </resultMap>
+
+    <sql id="selectPatrolTaskParticipantVo">
+        select Task_ID, Participant_ID
+        from sys_patrol_task_participant
+    </sql>
+
+    <select id="selectPatrolTaskParticipant" parameterType="com.ruoyi.system.domain.SysPatrolTaskParticipant" resultMap="SysPatrolTaskParticipantResult">
+        <include refid="selectPatrolTaskParticipantVo"/>
+        <where>
+            <if test="taskId != null">
+                and Task_ID = #{taskId}
+            </if>
+            <if test="participantId != null">
+                and Participant_ID = #{participantId}
+            </if>
+        </where>
+        order by Task_ID, Participant_ID
+    </select>
+
+    <insert id="insertPatrolTaskParticipant" parameterType="com.ruoyi.system.domain.SysPatrolTaskParticipant">
+        insert into sys_patrol_task_participant (
+            Task_ID, Participant_ID
+        ) values (
+            #{taskId}, #{participantId}
+        )
+    </insert>
+
+    <insert id="batchInsertPatrolTaskParticipant" parameterType="java.util.List">
+        insert into sys_patrol_task_participant (Task_ID, Participant_ID)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.taskId}, #{item.participantId})
+        </foreach>
+    </insert>
+
+    <delete id="deletePatrolTaskParticipantById" parameterType="com.ruoyi.system.domain.SysPatrolTaskParticipant">
+        delete from sys_patrol_task_participant where Task_ID = #{taskId} and Participant_ID = #{participantId}
+    </delete>
+
+    <delete id="deletePatrolTaskParticipantByTaskId" parameterType="java.lang.String">
+        delete from sys_patrol_task_participant where Task_ID = #{taskId}
+    </delete>
+
+    <delete id="deletePatrolTaskParticipantByPatrolId" parameterType="String">
+        DELETE FROM sys_patrol_task_participant WHERE Participant_ID = #{participantId}
+    </delete>
+</mapper>
