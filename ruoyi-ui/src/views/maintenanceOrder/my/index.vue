@@ -200,8 +200,14 @@
               <i class="el-icon-more"></i>
             </el-button>
             <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item @click.native="handleSubmitOrUpdate(scope.row)">
-                <i class="el-icon-upload"></i> {{ scope.row.processingStatus === 'On Process' ? '提交' : '更新' }}
+              <el-dropdown-item @click.native="handleSubmit(scope.row)" v-if="scope.row.processingStatus === 'On Process'">
+                <i class="el-icon-upload"></i> 提交
+              </el-dropdown-item>
+              <el-dropdown-item @click.native="handleUpdate(scope.row)" v-else>
+                <i class="el-icon-edit"></i> 更新
+              </el-dropdown-item>
+              <el-dropdown-item @click.native="handleViewLogs(scope.row)">
+                <i class="el-icon-document"></i> 查看记录
               </el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
@@ -221,20 +227,13 @@
     <el-dialog :title="submitOrUpdateTitle" :visible.sync="submitOrUpdateOpen" :width="isMobile ? '100%' : '500px'" append-to-body>
       <el-form ref="submitOrUpdateForm" :model="submitOrUpdateForm" label-width="100px">
         <el-form-item label="维修人员姓名" prop="facilityGuysName" v-if="submitOrUpdateTitle === '更新维护工单'">
-          <el-select v-model="submitOrUpdateForm.facilityGuysName" placeholder="请选择维修人员姓名" @change="handleUserChange">
-            <el-option
-              v-for="user in deptUsers"
-              :key="user.userId"
-              :label="user.userName"
-              :value="user.userName"
-            />
-          </el-select>
+          <el-input v-model="submitOrUpdateForm.facilityGuysName" placeholder="维修人员姓名" disabled />
         </el-form-item>
         <el-form-item label="维修人员电话" prop="facilityGuyMobile" v-if="submitOrUpdateTitle === '更新维护工单'">
-          <el-input v-model="submitOrUpdateForm.facilityGuyMobile" placeholder="请输入维修人员电话" />
+          <el-input v-model="submitOrUpdateForm.facilityGuyMobile" placeholder="维修人员电话" disabled />
         </el-form-item>
         <el-form-item label="维修人员邮箱" prop="facilityGuysEmail" v-if="submitOrUpdateTitle === '更新维护工单'">
-          <el-input v-model="submitOrUpdateForm.facilityGuysEmail" placeholder="请输入维修人员邮箱" />
+          <el-input v-model="submitOrUpdateForm.facilityGuysEmail" placeholder="维修人员邮箱" disabled />
         </el-form-item>
         <el-form-item label="结果信息" prop="resultMessage">
           <el-input v-model="submitOrUpdateForm.resultMessage" placeholder="请输入结果信息" />
@@ -310,11 +309,14 @@
         <el-button @click="showImageDialog = false">关闭</el-button>
       </div>
     </el-dialog>
+
+    <!-- 记录查看对话框 -->
+    <log-dialog v-if="logDialogVisible" :visible.sync="logDialogVisible" :log-list="logList" :issue-id="currentIssueId" @send-message="sendMessage"></log-dialog>
   </div>
 </template>
 
 <script>
-import { listMyMaintenanceOrder, getMaintenanceOrder, updateMaintenanceOrder, uploadImage, exportMaintenanceOrder, listUserByDeptId } from "@/api/maintenanceOrder/my/maintenanceOrderMy";
+import { listMyMaintenanceOrder, getMaintenanceOrder, updateMaintenanceOrder, uploadImage, exportMaintenanceOrder, listUserByDeptId, listMaintenanceOrderLogs, addMaintenanceOrderLog, getUserProfile } from "@/api/maintenanceOrder/my/maintenanceOrderMy";
 
 export default {
   name: "MyMaintenanceOrder",
@@ -385,7 +387,15 @@ export default {
       imageSrc: '',
       deptUsers: [],
       startDate: null,
-      endDate: null
+      endDate: null,
+      logDialogVisible: false,
+      logList: [],
+      currentIssueId: null,
+      newMessage: "",
+      currentUser: {
+        userId: "",
+        userName: ""
+      }
     };
   },
   computed: {
@@ -403,6 +413,7 @@ export default {
     }
     this.getList();
     this.getDeptUsers(); // 获取部门用户信息
+    this.getCurrentUser(); // 获取当前用户信息
   },
   methods: {
     /** 查询维护工单列表 */
@@ -472,6 +483,28 @@ export default {
       this.submitOrUpdateTitle = row.processingStatus === 'On Process' ? '提交维护工单' : '更新维护工单';
       this.submitOrUpdateOpen = true;
     },
+    handleSubmit(row) {
+      this.resetSubmitOrUpdateForm();
+      this.submitOrUpdateForm = { ...row };
+      this.originalSubmitOrUpdateForm = { ...row };
+      if (this.submitOrUpdateForm.resultImgPath) {
+        const fullUrl = `https://schoolmaintenancestorage.blob.core.windows.net/schoolblodfiles/image/${this.submitOrUpdateForm.resultImgPath}`;
+        this.fileList.push({ name: this.submitOrUpdateForm.resultImgPath, url: fullUrl });
+      }
+      this.submitOrUpdateTitle = '提交维护工单';
+      this.submitOrUpdateOpen = true;
+    },
+    handleUpdate(row) {
+      this.resetSubmitOrUpdateForm();
+      this.submitOrUpdateForm = { ...row };
+      this.originalSubmitOrUpdateForm = { ...row };
+      if (this.submitOrUpdateForm.resultImgPath) {
+        const fullUrl = `https://schoolmaintenancestorage.blob.core.windows.net/schoolblodfiles/image/${this.submitOrUpdateForm.resultImgPath}`;
+        this.fileList.push({ name: this.submitOrUpdateForm.resultImgPath, url: fullUrl });
+      }
+      this.submitOrUpdateTitle = '更新维护工单';
+      this.submitOrUpdateOpen = true;
+    },
     /** 提交或更新表单操作 */
     submitOrUpdateFormAction() {
       if (this.fileList.some(file => file.status !== 'success')) {
@@ -483,7 +516,7 @@ export default {
       } 
       if (this.submitOrUpdateTitle === '提交维护工单') {
         this.remindIssuer();
-        this.updateMaintenanceOrderData();
+        this.updateMaintenanceOrderData('提交');
       } else {
         this.$confirm('是否提醒发布人？', '提示', {
           confirmButtonText: '是',
@@ -491,13 +524,13 @@ export default {
           type: 'warning'
         }).then(() => {
           this.remindIssuer();
-          this.updateMaintenanceOrderData();
+          this.updateMaintenanceOrderData('更新');
         }).catch(() => {
-          this.updateMaintenanceOrderData();
+          this.updateMaintenanceOrderData('更新');
         });
       }
     },
-    updateMaintenanceOrderData() {
+    updateMaintenanceOrderData(actionType) {
       this.$refs["submitOrUpdateForm"].validate(valid => {
         if (valid) {
           if (this.fileList.length === 0) {
@@ -507,7 +540,54 @@ export default {
             this.$modal.msgSuccess("操作成功");
             this.submitOrUpdateOpen = false;
             this.getList();
+            if (actionType === '提交') {
+              const statusLabel = this.dict.type.sys_maintenance_status.find(item => item.value === this.submitOrUpdateForm.processingStatus)?.label || this.submitOrUpdateForm.processingStatus;
+              this.addLog(this.submitOrUpdateForm.issueId, actionType, `工单提交为 ${statusLabel}`);
+            } else {
+              this.addDetailedLog(this.submitOrUpdateForm.issueId, actionType, this.originalSubmitOrUpdateForm, this.submitOrUpdateForm);
+            }
           });
+        }
+      });
+    },
+    addDetailedLog(issueId, actionType, originalData, updatedData) {
+      const fieldNames = {
+        issueDetails: "问题详情",
+        urgencyLevel: "紧急程度",
+        maintenanceType: "维修类型",
+        floor: "楼层",
+        classroom: "教室",
+        resultMessage: "结果信息",
+        resultImgPath: "处理图片",
+        processingStatus: "处理状态",
+        facilityGuysName: "维修人员姓名",
+        facilityGuyMobile: "维修人员电话",
+        facilityGuysEmail: "维修人员邮箱"
+      };
+      const changes = [];
+      for (const key in updatedData) {
+        if (updatedData[key] !== originalData[key]) {
+          const fieldName = fieldNames[key] || key;
+          let oldValue = originalData[key];
+          let newValue = updatedData[key];
+          if (key === 'processingStatus') {
+            oldValue = this.dict.type.sys_maintenance_status.find(item => item.value === originalData[key])?.label || originalData[key];
+            newValue = this.dict.type.sys_maintenance_status.find(item => item.value === updatedData[key])?.label || updatedData[key];
+          }
+          changes.push(`${fieldName} 从 "${oldValue}" 更新为 "${newValue}"`);
+        }
+      }
+      const actionDescription = changes.length > 0 ? changes.join(", ") : "无变化";
+      const log = {
+        issueId: issueId,
+        actionType: actionType,
+        actionDescription: actionDescription,
+        userId: this.currentUser.userId,
+        userName: this.currentUser.userName
+      };
+      addMaintenanceOrderLog(log).then(response => {
+        if (response.code !== 200) {
+          this.$message.error("日志记录失败");
         }
       });
     },
@@ -593,6 +673,60 @@ export default {
       // 假设部门ID为200
       listUserByDeptId(200).then(response => {
         this.deptUsers = response.data;
+      });
+    },
+    handleViewLogs(row) {
+      import('../all/LogDialog.vue').then(module => {
+        this.$options.components.LogDialog = module.default;
+        listMaintenanceOrderLogs(row.issueId).then(response => {
+          this.logList = response.data;
+          this.currentIssueId = row.issueId;
+          this.logDialogVisible = true;
+        });
+      });
+    },
+    sendMessage(message) {
+      if (message.trim() !== "") {
+        const log = {
+          issueId: this.currentIssueId,
+          actionType: "沟通",
+          actionDescription: message,
+          userId: this.currentUser.userId,
+          userName: this.currentUser.userName
+        };
+        addMaintenanceOrderLog(log).then(response => {
+          if (response.code === 200) {
+            this.refreshLogs();
+            this.newMessage = "";
+          } else {
+            this.$message.error("发送消息失败");
+          }
+        });
+      }
+    },
+    refreshLogs() {
+      listMaintenanceOrderLogs(this.currentIssueId).then(response => {
+        this.logList = response.data;
+      });
+    },
+    getCurrentUser() {
+      getUserProfile().then(response => {
+        this.currentUser.userId = response.data.userId;
+        this.currentUser.userName = response.data.userName;
+      });
+    },
+    addLog(issueId, actionType, actionDescription) {
+      const log = {
+        issueId: issueId,
+        actionType: actionType,
+        actionDescription: actionDescription,
+        userId: this.currentUser.userId,
+        userName: this.currentUser.userName
+      };
+      addMaintenanceOrderLog(log).then(response => {
+        if (response.code !== 200) {
+          this.$message.error("日志记录失败");
+        }
       });
     }
   }

@@ -30,6 +30,11 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import com.ruoyi.system.service.ISysUserService;
 import com.ruoyi.common.core.domain.entity.SysUser;
+import com.ruoyi.system.domain.SysMaintenanceOrderLog;
+import com.ruoyi.system.service.ISysMaintenanceOrderLogService;
+import java.util.Comparator;
+import java.sql.Timestamp;
+import java.util.UUID;
 
 /**
  * 我的维修工单 控制器
@@ -45,6 +50,9 @@ public class SysMaintenanceOrderMyController extends BaseController
 
     @Autowired
     private ISysUserService userService;
+
+    @Autowired
+    private ISysMaintenanceOrderLogService maintenanceOrderLogService;
 
     /**
      * 获取我的维修工单列表
@@ -169,5 +177,30 @@ public class SysMaintenanceOrderMyController extends BaseController
     public AjaxResult getUser(@PathVariable Long userId) {
         SysUser user = userService.selectUserById(userId);
         return AjaxResult.success(user);
+    }
+
+    /**
+     * 获取工单日志记录
+     */
+    @PreAuthorize("@ss.hasPermi('maintenanceOrder:my:query')")
+    @GetMapping("/logs/{issueId}")
+    public AjaxResult getLogs(@PathVariable String issueId) {
+        SysMaintenanceOrderLog log = new SysMaintenanceOrderLog();
+        log.setIssueId(issueId);
+        List<SysMaintenanceOrderLog> list = maintenanceOrderLogService.selectMaintenanceOrderLogList(log);
+        list.sort(Comparator.comparing(SysMaintenanceOrderLog::getActionTime));
+        return AjaxResult.success(list);
+    }
+
+    /**
+     * 新增工单日志记录
+     */
+    @Log(title = "工单日志管理", businessType = BusinessType.INSERT)
+    @PreAuthorize("@ss.hasPermi('maintenanceOrder:my:add')")
+    @PostMapping("/logs")
+    public AjaxResult addLog(@Validated @RequestBody SysMaintenanceOrderLog log) {
+        log.setLogId(UUID.randomUUID().toString());
+        log.setActionTime(new Timestamp(System.currentTimeMillis()));
+        return toAjax(maintenanceOrderLogService.insertMaintenanceOrderLog(log));
     }
 }

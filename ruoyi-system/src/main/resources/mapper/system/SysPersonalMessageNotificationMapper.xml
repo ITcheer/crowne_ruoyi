@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.SysPersonalMessageNotificationMapper">
+
+    <resultMap type="com.ruoyi.system.domain.SysPersonalMessageNotification" id="SysPersonalMessageNotificationResult">
+        <id property="notificationId" column="notification_id" />
+        <result property="userId" column="user_id" />
+        <result property="messageTitle" column="message_title" />
+        <result property="messageContent" column="message_content" />
+        <result property="readStatus" column="read_status" />
+        <result property="createTime" column="create_time" />
+        <result property="notificationType" column="notification_type" />
+        <result property="notificationSource" column="notification_source" />
+    </resultMap>
+
+    <select id="selectPersonalMessageNotificationById" parameterType="String" resultMap="SysPersonalMessageNotificationResult">
+        SELECT * FROM sys_personal_message_notification WHERE notification_id = #{notificationId}
+    </select>
+
+    <select id="selectPersonalMessageNotificationList" parameterType="com.ruoyi.system.domain.SysPersonalMessageNotification" resultMap="SysPersonalMessageNotificationResult">
+        SELECT * FROM sys_personal_message_notification
+        <where>
+            <if test="userId != null and userId != ''">
+                AND user_id = #{userId}
+            </if>
+            <if test="readStatus != null">
+                AND read_status = #{readStatus}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+    <insert id="insertPersonalMessageNotification" parameterType="com.ruoyi.system.domain.SysPersonalMessageNotification">
+        INSERT INTO sys_personal_message_notification (notification_id, user_id, message_title, message_content, read_status, create_time, notification_type, notification_source)
+        VALUES (#{notificationId}, #{userId}, #{messageTitle}, #{messageContent}, #{readStatus}, #{createTime}, #{notificationType}, #{notificationSource})
+    </insert>
+
+    <update id="updatePersonalMessageNotification" parameterType="com.ruoyi.system.domain.SysPersonalMessageNotification">
+        UPDATE sys_personal_message_notification
+        <set>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="messageTitle != null">message_title = #{messageTitle},</if>
+            <if test="messageContent != null">message_content = #{messageContent},</if>
+            <if test="readStatus != null">read_status = #{readStatus},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="notificationType != null">notification_type = #{notificationType},</if>
+            <if test="notificationSource != null">notification_source = #{notificationSource},</if>
+        </set>
+        WHERE notification_id = #{notificationId}
+    </update>
+
+    <delete id="deletePersonalMessageNotificationById" parameterType="String">
+        DELETE FROM sys_personal_message_notification WHERE notification_id = #{notificationId}
+    </delete>
+
+    <delete id="deletePersonalMessageNotificationByIds" parameterType="String">
+        DELETE FROM sys_personal_message_notification WHERE notification_id IN
+        <foreach item="notificationId" collection="array" open="(" separator="," close=")">
+            #{notificationId}
+        </foreach>
+    </delete>
+
+</mapper>

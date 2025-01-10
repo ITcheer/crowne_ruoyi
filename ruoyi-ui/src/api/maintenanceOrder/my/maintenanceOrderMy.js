@@ -86,3 +86,20 @@ export function getUser(userId) {
     method: 'get'
   })
 }
+
+// 获取工单日志记录
+export function listMaintenanceOrderLogs(issueId) {
+  return request({
+    url: '/maintenanceOrder/my/logs/' + issueId,
+    method: 'get'
+  });
+}
+
+// 新增工单日志记录
+export function addMaintenanceOrderLog(data) {
+  return request({
+    url: '/maintenanceOrder/my/logs',
+    method: 'post',
+    data: data
+  });
+}

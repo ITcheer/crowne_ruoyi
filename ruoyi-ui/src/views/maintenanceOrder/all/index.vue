@@ -347,6 +347,9 @@
               <el-dropdown-item @click.native="handleSubmitOrUpdate(scope.row)" v-hasPermi="['maintenanceOrder:all:submitOrUpdate']" :disabled="scope.row.processingStatus === 'Undistributed'">
                 <i class="el-icon-upload"></i> {{ scope.row.processingStatus === 'On Process' ? '提交' : '更新' }}
               </el-dropdown-item>
+              <el-dropdown-item @click.native="handleViewLogs(scope.row)" v-hasPermi="['maintenanceOrder:all:viewLogs']">
+                <i class="el-icon-document"></i> 查看记录
+              </el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
         </template>
@@ -560,12 +563,15 @@
         <el-button @click="cancelSubmitOrUpdate">取 消</el-button>
       </div>
     </el-dialog>
+
+    <!-- 查看记录对话框 -->
+    <log-dialog v-if="logDialogVisible" :visible.sync="logDialogVisible" :log-list="logList" :issue-id="currentIssueId" @send-message="sendMessage"></log-dialog>
   </div>
 </template>
 
 <script>
 import { listMaintenanceOrder, getMaintenanceOrder, delMaintenanceOrder, addMaintenanceOrder, updateMaintenanceOrder, exportMaintenanceOrder, assignMaintenanceOrder, uploadImage, closeMaintenanceOrder } from "@/api/maintenanceOrder/all/maintenanceOrderAll";
-import { getUserProfile, listUserByDeptId, getUser } from "@/api/maintenanceOrder/my/maintenanceOrderMy";
+import { getUserProfile, listUserByDeptId, getUser, listMaintenanceOrderLogs, addMaintenanceOrderLog } from "@/api/maintenanceOrder/my/maintenanceOrderMy";
 
 export default {
   name: "MaintenanceOrder",
@@ -685,7 +691,15 @@ export default {
       submitOrUpdateForm: {},
       originalSubmitOrUpdateForm: {},
       startDate: null,
-      endDate: null
+      endDate: null,
+      logDialogVisible: false,
+      logList: [],
+      currentIssueId: null,
+      newMessage: "",
+      currentUser: {
+        userId: "",
+        userName: ""
+      }
     };
   },
   computed: {
@@ -699,6 +713,7 @@ export default {
   created() {
     this.getList();
     this.getDeptUsers(); // 获取部门id为200的用户信息
+    this.getCurrentUser(); // 获取当前用户信息
   },
   methods: {
     /** 查询维护工单列表 */
@@ -817,6 +832,7 @@ export default {
         }
         this.open = true;
         this.title = "修改维护工单";
+        this.originalForm = { ...this.form }; // 保存原始数据
       });
     },
     /** 提交按钮 */
@@ -835,12 +851,14 @@ export default {
               this.$modal.msgSuccess("修改成功");
               this.open = false;
               this.getList();
+              this.addDetailedLog(this.form.issueId, "修改工单", this.originalForm, this.form, "修改");
             });
           } else {
             addMaintenanceOrder(this.form).then(response => {
               this.$modal.msgSuccess("新增成功");
               this.open = false;
               this.getList();
+              this.addLog(this.form.issueId, "新建工单", "工单已创建");
             });
           }
         }
@@ -853,11 +871,12 @@ export default {
     /** 删除按钮操作 */
     handleDelete(row) {
       const issueIds = row.issueId || this.ids;
-      this.$modal.confirm('是否确认删除工单编号为"' + issueIds + '"的数据项？').then(function() {
+      this.$modal.confirm('是否确认删除工单编号为"' + issueIds + '"的数据项？').then(() => {
         return delMaintenanceOrder(issueIds);
       }).then(() => {
         this.getList();
         this.$modal.msgSuccess("删除成功");
+        this.addLog(issueIds, "删除工单", "工单已删除");
       }).catch(() => {});
     },
     /** 导出按钮操作 */
@@ -908,6 +927,7 @@ export default {
             this.$modal.msgSuccess("分配成功");
             this.assignOpen = false;
             this.getList();
+            this.addLog(this.assignForm.issueId, "分配工单", "工单已分配给 " + this.assignForm.facilityGuysName);
           });
         }
       });
@@ -991,7 +1011,7 @@ export default {
       } 
       if (this.submitOrUpdateTitle === '提交维护工单') {
         this.remindIssuer();
-        this.updateMaintenanceOrderData();
+        this.updateMaintenanceOrderData('提交');
       } else {
         this.$confirm('是否提醒发布人？', '提示', {
           confirmButtonText: '是',
@@ -999,13 +1019,13 @@ export default {
           type: 'warning'
         }).then(() => {
           this.remindIssuer();
-          this.updateMaintenanceOrderData();
+          this.updateMaintenanceOrderData('更新');
         }).catch(() => {
-          this.updateMaintenanceOrderData();
+          this.updateMaintenanceOrderData('更新');
         });
       }
     },
-    updateMaintenanceOrderData() {
+    updateMaintenanceOrderData(actionType) {
       this.$refs["submitOrUpdateForm"].validate(valid => {
         if (valid) {
           if (this.fileList.length === 0) {
@@ -1015,7 +1035,70 @@ export default {
             this.$modal.msgSuccess("操作成功");
             this.submitOrUpdateOpen = false;
             this.getList();
+            if (actionType === '提交') {
+              const statusLabel = this.dict.type.sys_maintenance_status.find(item => item.value === this.submitOrUpdateForm.processingStatus)?.label || this.submitOrUpdateForm.processingStatus;
+              this.addLog(this.submitOrUpdateForm.issueId, actionType, `工单提交为 ${statusLabel}`);
+            } else {
+              this.addDetailedLog(this.submitOrUpdateForm.issueId, actionType, this.originalSubmitOrUpdateForm, this.submitOrUpdateForm);
+            }
           });
+        }
+      });
+    },
+    addDetailedLog(issueId, actionType, originalData, updatedData, operationType) {
+      const fieldNames = {
+        issueDetails: "问题详情",
+        urgencyLevel: "紧急程度",
+        maintenanceType: "维修类型",
+        floor: "楼层",
+        classroom: "教室",
+        resultMessage: "结果信息",
+        resultImgPath: "处理图片",
+        processingStatus: "处理状态",
+        facilityGuysName: "维修人员姓名",
+        facilityGuyMobile: "维修人员电话",
+        facilityGuysEmail: "维修人员邮箱"
+      };
+      const changes = [];
+      for (const key in updatedData) {
+        if (updatedData[key] !== originalData[key]) {
+          const fieldName = fieldNames[key] || key;
+          let oldValue = originalData[key];
+          let newValue = updatedData[key];
+          if (key === 'processingStatus') {
+            oldValue = this.dict.type.sys_maintenance_status.find(item => item.value === originalData[key])?.label || originalData[key];
+            newValue = this.dict.type.sys_maintenance_status.find(item => item.value === updatedData[key])?.label || updatedData[key];
+          }
+          const changeText = operationType === "修改" ? "修改为" : "更新为";
+          changes.push(`${fieldName} 从 "${oldValue}" ${changeText} "${newValue}"`);
+        }
+      }
+      const actionDescription = changes.length > 0 ? changes.join(", ") : "无变化";
+      const log = {
+        issueId: issueId,
+        actionType: actionType,
+        actionDescription: `${actionDescription}`,
+        userId: this.currentUser.userId,
+        userName: this.currentUser.userName
+      };
+      addMaintenanceOrderLog(log).then(response => {
+        if (response.code !== 200) {
+          this.$message.error("日志记录失败");
+        }
+      });
+    },
+    /** 添加工单日志记录 */
+    addLog(issueId, actionType, actionDescription) {
+      const log = {
+        issueId: issueId,
+        actionType: actionType,
+        actionDescription: actionDescription,
+        userId: this.currentUser.userId,
+        userName: this.currentUser.userName
+      };
+      addMaintenanceOrderLog(log).then(response => {
+        if (response.code !== 200) {
+          this.$message.error("日志记录失败");
         }
       });
     },
@@ -1040,6 +1123,28 @@ export default {
     handleEndDateChange(value) {
       this.endDate = value;
       this.dateRange = [this.startDate, this.endDate];
+    },
+    handleViewLogs(row) {
+      import('./LogDialog.vue').then(module => {
+        this.$options.components.LogDialog = module.default;
+        listMaintenanceOrderLogs(row.issueId).then(response => {
+          this.logList = response.data;
+          this.currentIssueId = row.issueId;
+          this.logDialogVisible = true;
+        });
+      });
+    },
+    sendMessage(message) {
+      if (message.trim() !== "") {
+        // 发送消息逻辑
+        console.log("发送消息:", message);
+      }
+    },
+    getCurrentUser() {
+      getUserProfile().then(response => {
+        this.currentUser.userId = response.data.userId;
+        this.currentUser.userName = response.data.userName;
+      });
     }
   }
 };
@@ -1087,5 +1192,57 @@ export default {
   margin: auto !important;
   width: 100% !important;
   max-width: 300px !important;
+}
+.chat-container {
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 10px;
+}
+.chat-message {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+}
+.chat-message-left {
+  align-items: flex-start;
+}
+.chat-message-right {
+  align-items: flex-end;
+}
+.chat-message-center {
+  align-items: center;
+  text-align: center;
+}
+.chat-message-content {
+  background-color: #f1f1f1;
+  padding: 10px;
+  border-radius: 5px;
+  max-width: 60%;
+  word-wrap: break-word;
+  width: fit-content;
+}
+.chat-message-content-center {
+  background-color: transparent;
+  max-width: 100%;
+  font-size: 12px;
+  color: #888;
+}
+.chat-message-info {
+  font-size: 10px;
+  color: #888;
+  margin-top: 5px;
+}
+.chat-message-right .chat-message-content {
+  background-color: #d1ecf1;
+  align-self: flex-end;
+}
+.chat-message-right .chat-message-info {
+  text-align: right;
+}
+.chat-message-info-center {
+  font-size: 10px;
+  color: #888;
+  margin-top: 2px;
+  margin-bottom: 15px;
 }
 </style>

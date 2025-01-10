@@ -81,6 +81,16 @@
           {{ formatDate(scope.row.updateTime) }}
         </template>
       </el-table-column>
+      <el-table-column v-if="visibleColumns.includes('qrCode')" label="打卡二维码" prop="qrCode">
+        <template slot-scope="scope">
+          <el-button type="primary" size="mini" @click="viewQRCode(scope.row.id)">查看二维码</el-button>
+        </template>
+      </el-table-column>
+      <el-table-column v-if="visibleColumns.includes('checkInLink')" label="打卡链接" prop="checkInLink">
+        <template slot-scope="scope">
+          <a :href="generateCheckInLink(scope.row.id)" target="_blank" class="check-in-link">{{ generateCheckInLink(scope.row.id) }}</a>
+        </template>
+      </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-dropdown>
@@ -126,11 +136,20 @@
         <el-button @click="cancel">取 消</el-button>
       </div>
     </el-dialog>
+
+    <!-- 二维码查看弹窗 -->
+    <el-dialog title="打卡二维码" :visible.sync="showQRCodeDialog" :width="isMobile ? '100%' : '300px'">
+      <img :src="qrCodeSrc" alt="二维码" style="width: 100%;" />
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="showQRCodeDialog = false">关闭</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import { listPatrolLocation, getPatrolLocation, delPatrolLocation, addPatrolLocation, updatePatrolLocation, exportPatrolLocation } from "@/api/patrol/location/patrolLocation";
+import QRCode from 'qrcode';
 
 export default {
   name: "PatrolLocation",
@@ -176,11 +195,13 @@ export default {
           { required: true, message: "地点名称不能为空", trigger: "blur" }
         ]
       },
-      visibleColumns: ['id', 'locationName', 'locationDescription', 'updateTime'],
+      visibleColumns: ['id', 'locationName', 'locationDescription', 'updateTime', 'qrCode', 'checkInLink'],
       sortParams: {
         prop: 'id',
         order: 'ascending'
-      }
+      },
+      showQRCodeDialog: false,
+      qrCodeSrc: ''
     };
   },
   computed: {
@@ -326,6 +347,20 @@ export default {
       const minutes = d.getMinutes().toString().padStart(2, '0');
       const seconds = d.getSeconds().toString().padStart(2, '0');
       return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    },
+    viewQRCode(id) {
+      const qrCodeUrl = `https://schoolmaintain-webapp.azurewebsites.net/cn/patrol_page/${id}`;
+      QRCode.toDataURL(qrCodeUrl).then(url => {
+        this.qrCodeSrc = url;
+        this.showQRCodeDialog = true;
+      });
+    },
+    generateQRCode(id) {
+      const qrCodeUrl = `https://schoolmaintain-webapp.azurewebsites.net/cn/patrol_page/${id}`;
+      return QRCode.toDataURL(qrCodeUrl);
+    },
+    generateCheckInLink(id) {
+      return `https://schoolmaintain-webapp.azurewebsites.net/cn/patrol_page/${id}`;
     }
   }
 };
@@ -333,4 +368,12 @@ export default {
 
 <style scoped>
 /* 样式与 all 全部工单的 index 保持一致 */
+.el-table th, .el-table td {
+  padding: 8px 10px;
+}
+.check-in-link {
+  color: #409EFF;
+  text-decoration: underline;
+}
 </style>
+
