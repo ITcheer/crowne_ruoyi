@@ -52,6 +52,14 @@ public interface SysPersonalMessageNotificationMapper {
      * @return 结果
      */
     int deletePersonalMessageNotificationByIds(String[] notificationIds);
+
+    /**
+     * 根据用户ID查询通知列表
+     * 
+     * @param userId 用户ID
+     * @return 通知集合
+     */
+    List<SysPersonalMessageNotification> selectPersonalMessageNotificationByUserId(String userId);
 }
 
 

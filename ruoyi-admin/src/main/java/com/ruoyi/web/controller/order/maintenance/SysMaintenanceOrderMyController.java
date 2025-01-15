@@ -61,14 +61,28 @@ public class SysMaintenanceOrderMyController extends BaseController
     @GetMapping("/list")
     public TableDataInfo list(SysMaintenanceOrder order)
     {   
-        // System.out.println("!!!!!!");
         startPage();
-        // 获取当前登录用户ID
-        Long userId = SecurityUtils.getLoginUser().getUser().getUserId();
-        // System.out.println("userId: " + userId);
-        order.setFacilityGuyId(userId.toString());
-        List<SysMaintenanceOrder> list = maintenanceOrderService.selectMaintenanceOrderList(order);
-        return getDataTable(list);
+        // 获取当前登录用户
+        SysUser currentUser = SecurityUtils.getLoginUser().getUser();
+        Long userId = currentUser.getUserId();
+        String roleName = currentUser.getRoles().get(0).getRoleName();
+
+        if ("超级管理员".equals(roleName)) {
+            // 超级管理员展示全部数据
+            List<SysMaintenanceOrder> list = maintenanceOrderService.selectMaintenanceOrderList(order);
+            return getDataTable(list);
+        } else if ("工程主管".equals(roleName)) {
+            // 工程主管展示全部状态为Undistributed的数据和该userid下的数据
+            order.setFacilityGuyId(null);
+            List<SysMaintenanceOrder> list = maintenanceOrderService.selectMaintenanceOrderList(order);
+            list.removeIf(o -> !userId.toString().equals(o.getFacilityGuyId()) && !"Undistributed".equals(o.getProcessingStatus()));
+            return getDataTable(list);
+        } else {
+            // 其他角色按userid展示
+            order.setFacilityGuyId(userId.toString());
+            List<SysMaintenanceOrder> list = maintenanceOrderService.selectMaintenanceOrderList(order);
+            return getDataTable(list);
+        }
     }
 
     /*

@@ -13,6 +13,8 @@ import com.ruoyi.system.service.ISysPersonalMessageNotificationService;
  */
 @Service
 public class SysPersonalMessageNotificationServiceImpl implements ISysPersonalMessageNotificationService {
+
+    
     
     @Autowired
     private SysPersonalMessageNotificationMapper notificationMapper;
@@ -45,5 +47,10 @@ public class SysPersonalMessageNotificationServiceImpl implements ISysPersonalMe
     @Override
     public int deletePersonalMessageNotificationByIds(String[] notificationIds) {
         return notificationMapper.deletePersonalMessageNotificationByIds(notificationIds);
+    }
+
+    @Override
+    public List<SysPersonalMessageNotification> selectPersonalMessageNotificationByUserId(String userId) {
+        return notificationMapper.selectPersonalMessageNotificationByUserId(userId);
     }
 }

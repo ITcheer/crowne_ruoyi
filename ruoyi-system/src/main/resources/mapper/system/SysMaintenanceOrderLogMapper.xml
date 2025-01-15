@@ -94,4 +94,15 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         </foreach>
     </delete>
 
+    <delete id="deleteMaintenanceOrderLogByIssueId" parameterType="String">
+        DELETE FROM sys_maintenance_order_log WHERE issue_id = #{issueId}
+    </delete>
+
+    <delete id="deleteMaintenanceOrderLogByIssueIds" parameterType="String">
+        DELETE FROM sys_maintenance_order_log WHERE issue_id IN
+        <foreach item="issueId" collection="array" open="(" separator="," close=")">
+            #{issueId}
+        </foreach>
+    </delete>
+
 </mapper>

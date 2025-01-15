@@ -25,7 +25,7 @@ public class SysPersonalMessageNotification extends BaseEntity {
 
     /** 阅读状态 */
     @Excel(name = "阅读状态")
-    private Boolean readStatus;
+    private Integer readStatus;
 
     /** 创建时间 */
     @Excel(name = "创建时间")
@@ -71,11 +71,11 @@ public class SysPersonalMessageNotification extends BaseEntity {
         this.messageContent = messageContent;
     }
 
-    public Boolean getReadStatus() {
+    public Integer getReadStatus() {
         return readStatus;
     }
 
-    public void setReadStatus(Boolean readStatus) {
+    public void setReadStatus(Integer readStatus) {
         this.readStatus = readStatus;
     }
 

@@ -1,6 +1,7 @@
 package com.ruoyi.web.controller.order.maintenance;
 
 import java.util.List;
+import java.util.UUID;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,8 +27,12 @@ import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.common.enums.BusinessType;
 import com.ruoyi.common.utils.poi.ExcelUtil;
 import com.ruoyi.system.domain.SysMaintenanceOrder;
+import com.ruoyi.system.domain.SysPersonalMessageNotification;
 import com.ruoyi.system.service.ISysMaintenanceOrderService;
+import com.ruoyi.system.service.ISysPersonalMessageNotificationService;
 import com.ruoyi.common.utils.file.AzureBlobUploadUtils;
+import com.ruoyi.system.service.ISysMaintenanceOrderLogService;
+import com.ruoyi.common.utils.AzureEmailUtils;
 
 /**
  * 全部维护工单 控制器
@@ -40,6 +45,12 @@ public class SysMaintenanceOrderAllController extends BaseController
 {
     @Autowired
     private ISysMaintenanceOrderService maintenanceOrderService;
+
+    @Autowired
+    private ISysPersonalMessageNotificationService notificationService;
+
+    @Autowired
+    private ISysMaintenanceOrderLogService maintenanceOrderLogService;
 
     /**
      * 获取维护工单列表
@@ -81,7 +92,39 @@ public class SysMaintenanceOrderAllController extends BaseController
     @PostMapping
     public AjaxResult add(@Validated @RequestBody SysMaintenanceOrder order)
     {
-        return toAjax(maintenanceOrderService.insertMaintenanceOrder(order));
+        int result = maintenanceOrderService.insertMaintenanceOrder(order);
+        if (result > 0) {
+            // 发送邮件通知
+            String recipientEmail = "619079928@qq.com";
+            String subject = "维修工单发起";
+            String workOrderUrl = "https://wonderful-tree-0e2299d00.4.azurestaticapps.net/";
+            AzureEmailUtils.sendHtmlEmail(
+                recipientEmail, 
+                subject, 
+                AzureEmailUtils.EmailTemplate.NEW_ORDER_NOTIFICATION, 
+                order.getIssuerName(), 
+                order.getIssuerEmail(), 
+                order.getIssuerPhone(), 
+                order.getClassroom(), 
+                order.getFloor(), 
+                order.getMaintenanceType(), 
+                order.getUrgencyLevel(), 
+                order.getIssueDetails(), 
+                workOrderUrl
+            );
+
+            // 新增个人消息通知
+            SysPersonalMessageNotification notification = new SysPersonalMessageNotification();
+            notification.setNotificationId(UUID.randomUUID().toString());
+            notification.setUserId("-1");
+            notification.setMessageTitle("新增维护工单");
+            notification.setMessageContent("您有一个新的维护工单，请及时处理。");
+            notification.setNotificationType("工单通知");
+            notification.setNotificationSource("维护工单模块");
+            notification.setReadStatus(0);
+            notificationService.insertPersonalMessageNotification(notification);
+        }
+        return toAjax(result);
     }
 
     /**
@@ -103,6 +146,7 @@ public class SysMaintenanceOrderAllController extends BaseController
     @DeleteMapping("/{issueIds}")
     public AjaxResult remove(@PathVariable String[] issueIds)
     {
+        maintenanceOrderLogService.deleteMaintenanceOrderLogByIssueIds(issueIds);
         return toAjax(maintenanceOrderService.deleteMaintenanceOrderByIds(issueIds));
     }
 
@@ -127,7 +171,61 @@ public class SysMaintenanceOrderAllController extends BaseController
         if ("Undistributed".equals(existingOrder.getProcessingStatus())) {
             existingOrder.setProcessingStatus("On Process");
         }
-        return toAjax(maintenanceOrderService.updateMaintenanceOrder(existingOrder));
+        int result = maintenanceOrderService.updateMaintenanceOrder(existingOrder);
+        if (result > 0) {
+            SysPersonalMessageNotification notification = new SysPersonalMessageNotification();
+            notification.setNotificationId(UUID.randomUUID().toString());
+            notification.setUserId(order.getFacilityGuyId());
+            notification.setMessageTitle("维护工单分配");
+            notification.setMessageContent("您有一个新的维护工单，请及时处理。");
+            notification.setNotificationType("工单通知");
+            notification.setNotificationSource("维护工单模块");
+            notification.setReadStatus(0);
+            notificationService.insertPersonalMessageNotification(notification);
+
+            // 发送邮件通知给处理人
+            String recipientEmail = order.getFacilityGuysEmail();
+            String subject = "维修工单分配";
+            String workOrderUrl = "https://wonderful-tree-0e2299d00.4.azurestaticapps.net/";
+            AzureEmailUtils.sendHtmlEmail(
+                recipientEmail, 
+                subject, 
+                AzureEmailUtils.EmailTemplate.ASSIGN_ORDER_NOTIFICATION, 
+                existingOrder.getIssuerName(), 
+                existingOrder.getIssuerEmail(), 
+                existingOrder.getIssuerPhone(), 
+                existingOrder.getClassroom(), 
+                existingOrder.getFloor(), 
+                existingOrder.getMaintenanceType(), 
+                existingOrder.getUrgencyLevel(), 
+                existingOrder.getIssueDetails(), 
+                workOrderUrl
+            );
+
+            // 发送邮件通知给提工单的用户
+            String issuerEmail = existingOrder.getIssuerEmail();
+            String issuerSubject = "您的维修工单已分配";
+            //https://schoolmaintain-webapp.azurewebsites.net/query/cn/
+            String issuerWorkOrderUrl = "http://127.0.0.1:5000/query/cn/" + existingOrder.getIssueId();
+            AzureEmailUtils.sendHtmlEmail(
+                issuerEmail, 
+                issuerSubject, 
+                AzureEmailUtils.EmailTemplate.ORDER_ASSIGNED_NOTIFICATION, 
+                existingOrder.getIssuerName(), 
+                existingOrder.getIssuerEmail(), 
+                existingOrder.getIssuerPhone(), 
+                existingOrder.getClassroom(), 
+                existingOrder.getFloor(), 
+                existingOrder.getMaintenanceType(), 
+                existingOrder.getUrgencyLevel(), 
+                existingOrder.getIssueDetails(), 
+                order.getFacilityGuysName(), 
+                order.getFacilityGuysEmail(), 
+                order.getFacilityGuyMobile(), 
+                issuerWorkOrderUrl
+            );
+        }
+        return toAjax(result);
     }
 
     /**

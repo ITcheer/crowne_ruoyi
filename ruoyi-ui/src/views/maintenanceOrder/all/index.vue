@@ -858,7 +858,7 @@ export default {
               this.$modal.msgSuccess("新增成功");
               this.open = false;
               this.getList();
-              this.addLog(this.form.issueId, "新建工单", "工单已创建");
+              this.addLog(this.form.issueId, "新建工单", "工单发起");
             });
           }
         }
@@ -876,7 +876,7 @@ export default {
       }).then(() => {
         this.getList();
         this.$modal.msgSuccess("删除成功");
-        this.addLog(issueIds, "删除工单", "工单已删除");
+        // this.addLog(issueIds, "删除工单", "工单已删除");
       }).catch(() => {});
     },
     /** 导出按钮操作 */

@@ -40,4 +40,14 @@ public class SysMaintenanceOrderLogServiceImpl implements ISysMaintenanceOrderLo
     public int deleteMaintenanceOrderLogByIds(String[] logIds) {
         return logMapper.deleteMaintenanceOrderLogByIds(logIds);
     }
+
+    @Override
+    public int deleteMaintenanceOrderLogByIssueIds(String[] issueIds) {
+        return logMapper.deleteMaintenanceOrderLogByIssueIds(issueIds);
+    }
+
+    @Override
+    public int deleteMaintenanceOrderLogByIssueId(String issueId) {
+        return logMapper.deleteMaintenanceOrderLogByIssueId(issueId);
+    }
 }

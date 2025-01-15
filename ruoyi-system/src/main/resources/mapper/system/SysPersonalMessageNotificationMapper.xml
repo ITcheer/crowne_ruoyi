@@ -62,4 +62,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         </foreach>
     </delete>
 
+    <select id="selectPersonalMessageNotificationByUserId" parameterType="String" resultMap="SysPersonalMessageNotificationResult">
+        SELECT * FROM sys_personal_message_notification WHERE user_id = #{userId}
+    </select>
+
 </mapper>

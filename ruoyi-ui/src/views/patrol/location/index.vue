@@ -33,7 +33,7 @@
           icon="el-icon-plus"
           size="mini"
           @click="handleAdd"
-          v-hasPermi="['patrolLocation:add']"
+          v-hasPermi="['patrol:location:add']"
         >新增</el-button>
       </el-col>
       <el-col v-if="!isMobile" :span="1.5">
@@ -44,7 +44,7 @@
           size="mini"
           :disabled="single"
           @click="handleUpdate"
-          v-hasPermi="['patrolLocation:edit']"
+          v-hasPermi="['patrol:location:edit']"
         >修改</el-button>
       </el-col>
       <el-col v-if="!isMobile" :span="1.5">
@@ -55,7 +55,7 @@
           size="mini"
           :disabled="multiple"
           @click="handleDelete"
-          v-hasPermi="['patrolLocation:remove']"
+          v-hasPermi="['patrol:location:remove']"
         >删除</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -65,7 +65,7 @@
           icon="el-icon-download"
           size="mini"
           @click="handleExport"
-          v-hasPermi="['patrolLocation:export']"
+          v-hasPermi="['patrol:location:export']"
         >导出</el-button>
       </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
@@ -98,10 +98,10 @@
               <i class="el-icon-more"></i>
             </el-button>
             <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item @click.native="handleUpdate(scope.row)" v-hasPermi="['patrolLocation:edit']">
+              <el-dropdown-item @click.native="handleUpdate(scope.row)" v-hasPermi="['patrol:location:edit']">
                 <i class="el-icon-edit"></i> 修改
               </el-dropdown-item>
-              <el-dropdown-item @click.native="handleDelete(scope.row)" v-hasPermi="['patrolLocation:remove']">
+              <el-dropdown-item @click.native="handleDelete(scope.row)" v-hasPermi="['patrol:location:remove']">
                 <i class="el-icon-delete"></i> 删除
               </el-dropdown-item>
             </el-dropdown-menu>

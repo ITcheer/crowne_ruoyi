@@ -55,4 +55,20 @@ public interface SysMaintenanceOrderLogMapper {
      * @return 结果
      */
     public int deleteMaintenanceOrderLogByIds(String[] logIds);
+
+    /**
+     * 根据工单ID删除日志记录
+     * 
+     * @param issueId 工单ID
+     * @return 结果
+     */
+    int deleteMaintenanceOrderLogByIssueId(String issueId);
+
+    /**
+     * 批量根据工单ID删除日志记录
+     * 
+     * @param issueIds 工单ID数组
+     * @return 结果
+     */
+    int deleteMaintenanceOrderLogByIssueIds(String[] issueIds);
 }
