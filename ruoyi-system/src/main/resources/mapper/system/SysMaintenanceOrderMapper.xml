@@ -23,12 +23,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="facilityGuySupervisor" column="facility_guy_superviosr" />
         <result property="resultImgPath" column="result_img_path" />
         <result property="resultMessage" column="result_message" />
-        <result property="processingStatus" column="proceessing_status" />
+        <result property="processingStatus" column="processing_status" />
         <result property="powerAppsId" column="__PowerAppsId__" />
     </resultMap>
     
     <sql id="selectMaintenanceOrderVo">
-        select ISSUE_Id, Issuer_Name, Issue_photo, Isssuer_Email, Issue_details, Classroom, Floor, Maintenance_Type, Urgency_Level, Issuer_Phone, facility_guy_id, date_format(date, '%Y-%m-%d %H:%i:%s') as date, facility_guys_email, facility_guys_name, facility_guy_mobile, facility_guy_superviosr, result_img_path, result_message, proceessing_status, __PowerAppsId__
+        select ISSUE_Id, Issuer_Name, Issue_photo, Isssuer_Email, Issue_details, Classroom, Floor, Maintenance_Type, Urgency_Level, Issuer_Phone, facility_guy_id, date_format(date, '%Y-%m-%d %H:%i:%s') as date, facility_guys_email, facility_guys_name, facility_guy_mobile, facility_guy_superviosr, result_img_path, result_message, processing_status, __PowerAppsId__
         from sys_maintenance_order
     </sql>
     
@@ -66,7 +66,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                 AND Urgency_Level = #{urgencyLevel}
             </if>
             <if test="processingStatus != null and processingStatus != ''">
-                AND proceessing_status = #{processingStatus}
+                AND processing_status = #{processingStatus}
             </if>
             <if test="issuerEmail != null and issuerEmail != ''">
                 AND Isssuer_Email like concat('%', #{issuerEmail}, '%')
@@ -116,7 +116,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     
     <insert id="insertMaintenanceOrder" parameterType="com.ruoyi.system.domain.SysMaintenanceOrder">
         insert into sys_maintenance_order (
-            ISSUE_Id, Issuer_Name, Issue_photo, Isssuer_Email, Issue_details, Classroom, Floor, Maintenance_Type, Urgency_Level, Issuer_Phone, facility_guy_id, date, facility_guys_email, facility_guys_name, facility_guy_mobile, facility_guy_superviosr, result_img_path, result_message, proceessing_status, __PowerAppsId__
+            ISSUE_Id, Issuer_Name, Issue_photo, Isssuer_Email, Issue_details, Classroom, Floor, Maintenance_Type, Urgency_Level, Issuer_Phone, facility_guy_id, date, facility_guys_email, facility_guys_name, facility_guy_mobile, facility_guy_superviosr, result_img_path, result_message, processing_status, __PowerAppsId__
         ) values (
             #{issueId}, #{issuerName}, #{issuePhoto}, #{issuerEmail}, #{issueDetails}, #{classroom}, #{floor}, #{maintenanceType}, #{urgencyLevel}, #{issuerPhone}, #{facilityGuyId}, #{date, jdbcType=TIMESTAMP}, #{facilityGuysEmail}, #{facilityGuysName}, #{facilityGuyMobile}, #{facilityGuySupervisor}, #{resultImgPath}, #{resultMessage}, #{processingStatus}, #{powerAppsId}
         )
@@ -142,7 +142,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="facilityGuySupervisor != null and facilityGuySupervisor != ''">facility_guy_superviosr = #{facilityGuySupervisor},</if>
             <if test="resultImgPath != null">result_img_path = #{resultImgPath},</if>
             <if test="resultMessage != null and resultMessage != ''">result_message = #{resultMessage},</if>
-            <if test="processingStatus != null and processingStatus != ''">proceessing_status = #{processingStatus},</if>
+            <if test="processingStatus != null and processingStatus != ''">processing_status = #{processingStatus},</if>
             <if test="powerAppsId != null and powerAppsId != ''">__PowerAppsId__ = #{powerAppsId},</if>
         </set>
         where ISSUE_Id = #{issueId}

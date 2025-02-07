@@ -1,0 +1,744 @@
+<template>
+  <div class="app-container">
+    <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch">
+      <!-- 搜索表单项 -->
+      <el-form-item :label="$t('cleaningOrder.issueDetails')" prop="issueDetails">
+        <el-input
+          v-model="queryParams.issueDetails"
+          :placeholder="$t('cleaningOrder.enterIssueDetails')"
+          clearable
+          style="width: 240px"
+          @keyup.enter.native="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item :label="$t('cleaningOrder.urgencyLevel')" prop="urgencyLevel">
+        <el-select
+          v-model="queryParams.urgencyLevel"
+          :placeholder="$t('cleaningOrder.urgencyLevel')"
+          clearable
+          style="width: 240px"
+        >
+          <el-option
+            v-for="dict in dict.type.sys_urgency_level"
+            :key="dict.value"
+            :label="dict.label"
+            :value="dict.value"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item :label="$t('cleaningOrder.processingStatus')" prop="processingStatus">
+        <el-select
+          v-model="queryParams.processingStatus"
+          :placeholder="$t('cleaningOrder.processingStatus')"
+          clearable
+          style="width: 240px"
+        >
+          <el-option
+            v-for="dict in dict.type.sys_maintenance_status"
+            :key="dict.value"
+            :label="dict.label"
+            :value="dict.value"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item :label="$t('cleaningOrder.date')">
+        <template v-if="isMobile">
+          <div style="display: flex; gap: 10px;">
+            <el-date-picker
+              v-model="startDate"
+              style="flex: 1;"
+              value-format="yyyyMMdd"
+              type="date"
+              :placeholder="$t('cleaningOrder.startDate')"
+              :popper-class="isMobile ? 'mobile-date-picker' : ''"
+              :append-to-body="isMobile"
+              @change="handleStartDateChange"
+            ></el-date-picker>
+            <el-date-picker
+              v-model="endDate"
+              style="flex: 1;"
+              value-format="yyyyMMdd"
+              type="date"
+              :placeholder="$t('cleaningOrder.endDate')"
+              :popper-class="isMobile ? 'mobile-date-picker' : ''"
+              :append-to-body="isMobile"
+              @change="handleEndDateChange"
+            ></el-date-picker>
+          </div>
+        </template>
+        <el-date-picker
+          v-else
+          v-model="dateRange"
+          style="width: 240px"
+          value-format="yyyyMMdd"
+          type="daterange"
+          range-separator="-"
+          :start-placeholder="$t('cleaningOrder.startDate')"
+          :end-placeholder="$t('cleaningOrder.endDate')"
+        ></el-date-picker>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">{{ $t('cleaningOrder.search') }}</el-button>
+        <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">{{ $t('cleaningOrder.reset') }}</el-button>
+      </el-form-item>
+    </el-form>
+
+    <el-row :gutter="10" class="mb8">
+      <el-col :span="1.5">
+        <el-button
+          type="warning"
+          plain
+          icon="el-icon-download"
+          size="mini"
+          @click="handleExport"
+        >{{ $t('cleaningOrder.export') }}</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="primary"
+          plain
+          icon="el-icon-setting"
+          size="mini"
+          @click="showColumnSettings = true"
+        >{{ $t('cleaningOrder.columnSettings') }}</el-button>
+      </el-col>
+    </el-row>
+
+    <el-row v-if="isMobile" :gutter="10">
+      <el-col :xs="24" :sm="12" :md="8" v-for="item in cleaningOrderList" :key="item.issueId">
+        <el-card class="box-card" shadow="hover">
+          <div class="card-content">
+            <p><strong>{{ $t('cleaningOrder.issuerName') }}:</strong> {{ item.issuerName }}</p>
+            <p><strong>{{ $t('cleaningOrder.issueDetails') }}:</strong> {{ item.issueDetails }}</p>
+            <p><strong>{{ $t('cleaningOrder.date') }}:</strong> {{ parseTime(item.date) }}</p>
+            <p>
+              <strong>{{ $t('cleaningOrder.classroom') }}:</strong> {{ item.classroom }} 
+              <strong>{{ $t('cleaningOrder.floor') }}:</strong> {{ item.floor }}
+            </p>
+            <p class="inline-fields">
+              <strong>{{ $t('cleaningOrder.urgencyLevel') }}:</strong> <dict-tag :options="dict.type.sys_urgency_level" :value="item.urgencyLevel"/>
+              <strong>{{ $t('cleaningOrder.processingStatus') }}:</strong> <dict-tag :options="dict.type.sys_maintenance_status" :value="item.processingStatus"/>
+            </p>
+            <p>
+              <strong>{{ $t('cleaningOrder.issuePhoto') }}:</strong>
+              <el-button type="text" :style="{ color: item.issuePhoto ? '' : 'gray' }" @click="item.issuePhoto ? viewImage('https://schoolmaintenancestorage.blob.core.windows.net/schoolblodfiles/image/' + item.issuePhoto) : null">
+                {{ item.issuePhoto ? $t('cleaningOrder.viewImage') : $t('cleaningOrder.noImage') }}
+              </el-button>
+            </p>
+            <div class="button-container">
+              <el-button :type="item.processingStatus === 'On Process' ? 'success' : 'primary'" size="mini" @click="handleSubmitOrUpdate(item)">
+                {{ item.processingStatus === 'On Process' ? $t('cleaningOrder.submit') : $t('cleaningOrder.update') }}
+              </el-button>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
+    <el-table v-else v-loading="loading" :data="cleaningOrderList" @selection-change="handleSelectionChange" @sort-change="handleSortChange">
+      <el-table-column type="selection" width="55" align="center" />
+      <el-table-column v-if="visibleColumns.includes('issueId')" :label="$t('cleaningOrder.issueId')" prop="issueId" width="120" sortable />
+      <el-table-column v-if="visibleColumns.includes('issuerName')" :label="$t('cleaningOrder.issuerName')" prop="issuerName" :show-overflow-tooltip="true" width="150" sortable />
+      <el-table-column v-if="visibleColumns.includes('issuePhoto')" :label="$t('cleaningOrder.issuePhoto')" prop="issuePhoto" :show-overflow-tooltip="true" width="120">
+        <template slot-scope="scope">
+          <el-button type="text" :style="{ color: scope.row.issuePhoto ? '' : 'gray' }" @click="scope.row.issuePhoto ? viewImage('https://schoolmaintenancestorage.blob.core.windows.net/schoolblodfiles/image/' + scope.row.issuePhoto) : null">
+            {{ scope.row.issuePhoto ? $t('cleaningOrder.viewImage') : $t('cleaningOrder.noImage') }}
+          </el-button>
+        </template>
+      </el-table-column>
+      <el-table-column v-if="visibleColumns.includes('issuerEmail')" :label="$t('cleaningOrder.issuerEmail')" prop="issuerEmail" :show-overflow-tooltip="true" width="150" sortable />
+      <el-table-column v-if="visibleColumns.includes('issueDetails')" :label="$t('cleaningOrder.issueDetails')" prop="issueDetails" :show-overflow-tooltip="true" width="200" sortable />
+      <el-table-column v-if="visibleColumns.includes('classroom')" :label="$t('cleaningOrder.classroom')" prop="classroom" :show-overflow-tooltip="true" width="100" sortable />
+      <el-table-column v-if="visibleColumns.includes('floor')" :label="$t('cleaningOrder.floor')" prop="floor" :show-overflow-tooltip="true" width="80" sortable />
+      <el-table-column v-if="visibleColumns.includes('urgencyLevel')" :label="$t('cleaningOrder.urgencyLevel')" align="center" prop="urgencyLevel" sortable>
+        <template slot-scope="scope">
+          <dict-tag :options="dict.type.sys_urgency_level" :value="scope.row.urgencyLevel"/>
+        </template>
+      </el-table-column>
+      <el-table-column v-if="visibleColumns.includes('issuerPhone')" :label="$t('cleaningOrder.issuerPhone')" prop="issuerPhone" :show-overflow-tooltip="true" width="150" sortable />
+      <el-table-column v-if="visibleColumns.includes('facilityGuyId')" :label="$t('cleaningOrder.facilityGuyId')" prop="facilityGuyId" :show-overflow-tooltip="true" width="150" sortable />
+      <el-table-column v-if="visibleColumns.includes('date')" :label="$t('cleaningOrder.date')" align="center" prop="date" width="180" sortable>
+        <template slot-scope="scope">
+          <span>{{ parseTime(scope.row.date) }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column v-if="visibleColumns.includes('facilityGuysEmail')" :label="$t('cleaningOrder.facilityGuysEmail')" prop="facilityGuysEmail" :show-overflow-tooltip="true" width="150" sortable />
+      <el-table-column v-if="visibleColumns.includes('facilityGuysName')" :label="$t('cleaningOrder.facilityGuysName')" prop="facilityGuysName" :show-overflow-tooltip="true" width="150" sortable />
+      <el-table-column v-if="visibleColumns.includes('facilityGuyMobile')" :label="$t('cleaningOrder.facilityGuyMobile')" prop="facilityGuyMobile" :show-overflow-tooltip="true" width="150" sortable />
+      <el-table-column v-if="visibleColumns.includes('facilityGuySupervisor')" :label="$t('cleaningOrder.facilityGuySupervisor')" prop="facilityGuySupervisor" :show-overflow-tooltip="true" width="150" sortable />
+      <el-table-column v-if="visibleColumns.includes('resultImgPath')" :label="$t('cleaningOrder.resultImgPath')" prop="resultImgPath" :show-overflow-tooltip="true" width="120">
+        <template slot-scope="scope">
+          <el-button type="text" :style="{ color: scope.row.resultImgPath ? '' : 'gray' }" @click="scope.row.resultImgPath ? viewImage('https://schoolmaintenancestorage.blob.core.windows.net/schoolblodfiles/image/' + scope.row.resultImgPath) : null">
+            {{ scope.row.resultImgPath ? $t('cleaningOrder.viewImage') : $t('cleaningOrder.noImage') }}
+          </el-button>
+        </template>
+      </el-table-column>
+      <el-table-column v-if="visibleColumns.includes('resultMessage')" :label="$t('cleaningOrder.resultMessage')" prop="resultMessage" :show-overflow-tooltip="true" width="150" sortable />
+      <el-table-column v-if="visibleColumns.includes('processingStatus')" :label="$t('cleaningOrder.processingStatus')" align="center" prop="processingStatus" sortable>
+        <template slot-scope="scope">
+          <dict-tag :options="dict.type.sys_maintenance_status" :value="scope.row.processingStatus"/>
+        </template>
+      </el-table-column>
+      <el-table-column :label="$t('cleaningOrder.actions')" align="center" class-name="small-padding fixed-width">
+        <template slot-scope="scope">
+          <el-dropdown>
+            <el-button type="text" size="mini">
+              <i class="el-icon-more"></i>
+            </el-button>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item @click.native="handleSubmit(scope.row)" v-if="scope.row.processingStatus === 'On Process'">
+                <i class="el-icon-upload"></i> {{ $t('cleaningOrder.submit') }}
+              </el-dropdown-item>
+              <el-dropdown-item @click.native="handleUpdate(scope.row)" v-else>
+                <i class="el-icon-edit"></i> {{ $t('cleaningOrder.update') }}
+              </el-dropdown-item>
+              <!-- <el-dropdown-item @click.native="handleViewLogs(scope.row)">
+                <i class="el-icon-document"></i> 查看记录
+              </el-dropdown-item> -->
+            </el-dropdown-menu>
+          </el-dropdown>
+        </template>
+      </el-table-column>
+    </el-table>
+
+    <pagination
+      v-show="total>0"
+      :total="total"
+      :page.sync="queryParams.pageNum"
+      :limit.sync="queryParams.pageSize"
+      @pagination="getList"
+    />
+
+    <!-- 提交或更新清洁工单对话框 -->
+    <el-dialog :title="submitOrUpdateTitle" :visible.sync="submitOrUpdateOpen" :width="isMobile ? '100%' : '500px'" append-to-body>
+      <el-form ref="submitOrUpdateForm" :model="submitOrUpdateForm" label-width="100px">
+        <el-form-item :label="$t('cleaningOrder.facilityGuysName')" prop="facilityGuysName" v-if="submitOrUpdateTitle === '更新清洁工单'">
+          <el-input v-model="submitOrUpdateForm.facilityGuysName" :placeholder="$t('cleaningOrder.enterFacilityGuysName')" disabled />
+        </el-form-item>
+        <el-form-item :label="$t('cleaningOrder.facilityGuyMobile')" prop="facilityGuyMobile" v-if="submitOrUpdateTitle === '更新清洁工单'">
+          <el-input v-model="submitOrUpdateForm.facilityGuyMobile" :placeholder="$t('cleaningOrder.enterFacilityGuyMobile')" disabled />
+        </el-form-item>
+        <el-form-item :label="$t('cleaningOrder.facilityGuysEmail')" prop="facilityGuysEmail" v-if="submitOrUpdateTitle === '更新清洁工单'">
+          <el-input v-model="submitOrUpdateForm.facilityGuysEmail" :placeholder="$t('cleaningOrder.enterFacilityGuysEmail')" disabled />
+        </el-form-item>
+        <el-form-item :label="$t('cleaningOrder.resultMessage')" prop="resultMessage">
+          <el-input v-model="submitOrUpdateForm.resultMessage" :placeholder="$t('cleaningOrder.enterResultMessage')" />
+        </el-form-item>
+        <el-form-item :label="$t('cleaningOrder.resultImgPath')" prop="resultImgPath">
+          <el-upload
+            class="upload-demo"
+            action="#"
+            :http-request="uploadImage"
+            list-type="picture-card"
+            :on-preview="handlePreview"
+            :on-remove="handleRemove"
+            :file-list="fileList"
+          >
+            <i class="el-icon-plus"></i>
+          </el-upload>
+          <el-dialog :visible.sync="previewVisible">
+            <img width="100%" :src="previewImage" alt="" />
+          </el-dialog>
+        </el-form-item>
+        <el-form-item :label="$t('cleaningOrder.processingStatus')" prop="processingStatus">
+          <el-select v-model="submitOrUpdateForm.processingStatus" :placeholder="$t('cleaningOrder.selectProcessingStatus')">
+            <el-option
+              v-for="dict in dict.type.sys_maintenance_status"
+              :key="dict.value"
+              :label="dict.label"
+              :value="dict.value"
+              v-if="submitOrUpdateTitle === '提交清洁工单' ? (dict.value === 'Resolved' || dict.value === 'Can not Resolve') : true"
+            />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" :disabled="!isFormChanged || !submitOrUpdateForm.processingStatus || (submitOrUpdateTitle === '提交清洁工单' && submitOrUpdateForm.processingStatus === 'On Process')" @click="submitOrUpdateFormAction">{{ $t('cleaningOrder.confirm') }}</el-button>
+        <el-button @click="cancelSubmitOrUpdate">{{ $t('cleaningOrder.cancel') }}</el-button>
+      </div>
+    </el-dialog>
+
+    <!-- 字段设置对话框 -->
+    <el-dialog :title="$t('cleaningOrder.columnSettings')" :visible.sync="showColumnSettings" :width="isMobile ? '100%' : '300px'">
+      <el-checkbox-group v-model="visibleColumns">
+        <el-row>
+          <el-col :span="12"><el-checkbox label="issueId">{{ $t('cleaningOrder.issueId') }}</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="issuerName">{{ $t('cleaningOrder.issuerName') }}</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="issuePhoto">{{ $t('cleaningOrder.issuePhoto') }}</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="issuerEmail">{{ $t('cleaningOrder.issuerEmail') }}</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="issueDetails">{{ $t('cleaningOrder.issueDetails') }}</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="classroom">{{ $t('cleaningOrder.classroom') }}</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="floor">{{ $t('cleaningOrder.floor') }}</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="urgencyLevel">{{ $t('cleaningOrder.urgencyLevel') }}</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="issuerPhone">{{ $t('cleaningOrder.issuerPhone') }}</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="facilityGuyId">{{ $t('cleaningOrder.facilityGuyId') }}</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="date">{{ $t('cleaningOrder.date') }}</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="facilityGuysEmail">{{ $t('cleaningOrder.facilityGuysEmail') }}</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="facilityGuysName">{{ $t('cleaningOrder.facilityGuysName') }}</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="facilityGuyMobile">{{ $t('cleaningOrder.facilityGuyMobile') }}</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="facilityGuySupervisor">{{ $t('cleaningOrder.facilityGuySupervisor') }}</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="resultImgPath">{{ $t('cleaningOrder.resultImgPath') }}</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="resultMessage">{{ $t('cleaningOrder.resultMessage') }}</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="processingStatus">{{ $t('cleaningOrder.processingStatus') }}</el-checkbox></el-col>
+        </el-row>
+      </el-checkbox-group>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="showColumnSettings = false">{{ $t('cleaningOrder.close') }}</el-button>
+      </div>
+    </el-dialog>
+
+    <!-- 图片查看对话框 -->
+    <el-dialog :title="$t('cleaningOrder.viewImage')" :visible.sync="showImageDialog" :width="isMobile ? '100%' : '600px'">
+      <img :src="imageSrc" alt="图片" style="width: 100%;" />
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="showImageDialog = false">{{ $t('cleaningOrder.close') }}</el-button>
+      </div>
+    </el-dialog>
+
+    <!-- 记录查看对话框 -->
+    <log-dialog v-if="logDialogVisible" :visible.sync="logDialogVisible" :log-list="logList" :issue-id="currentIssueId" @send-message="sendMessage"></log-dialog>
+  </div>
+</template>
+
+<script>
+import { listMyCleaningOrder, getCleaningOrder, updateCleaningOrder, uploadImage, exportCleaningOrder, listUserByDeptId, getUserProfile, sendCompletionEmail, sendIncompleteEmail } from "@/api/cleaningOrder/my/cleaningOrderMy";
+
+export default {
+  name: "MyCleaningOrder",
+  dicts: ['sys_urgency_level', 'sys_maintenance_status'],
+  data() {
+    return {
+      // 遮罩层
+      loading: true,
+      // 选中数组
+      ids: [],
+      // 非单个禁用
+      single: true,
+      // 非多个禁用
+      multiple: true,
+      // 显示搜索条件
+      showSearch: true,
+      // 总条数
+      total: 0,
+      // 清洁订单表格数据
+      cleaningOrderList: [],
+      // 弹出层标题
+      submitOrUpdateTitle: "",
+      // 是否显示提交或更新弹出层
+      submitOrUpdateOpen: false,
+      // 日期范围
+      dateRange: [],
+      // 查询参数
+      queryParams: {
+        pageNum: 1,
+        pageSize: 10,
+        issueDetails: undefined,
+        urgencyLevel: undefined,
+        processingStatus: undefined,
+        sortField: 'date',
+        sortOrder: 'descending'
+      },
+      // 表单参数
+      submitOrUpdateForm: {},
+      originalSubmitOrUpdateForm: {},
+      // 表单校验
+      rules: {
+        issueDetails: [
+          { required: true, message: this.$t('cleaningOrder.enterIssueDetails'), trigger: "blur" }
+        ],
+        urgencyLevel: [
+          { required: true, message: this.$t('cleaningOrder.urgencyLevel'), trigger: "blur" }
+        ],
+        floor: [
+          { required: true, message: this.$t('cleaningOrder.enterFloor'), trigger: "blur" }
+        ],
+        classroom: [
+          { required: true, message: this.$t('cleaningOrder.enterClassroom'), trigger: "blur" }
+        ]
+      },
+      fileList: [],
+      previewVisible: false,
+      previewImage: '',
+      visibleColumns: ['issuerName', 'issuePhoto', 'issueDetails', 'classroom', 'floor', 'urgencyLevel', 'date', 'resultImgPath', 'resultMessage', 'processingStatus'],
+      sortParams: {
+        prop: 'date',
+        order: 'descending'
+      },
+      showColumnSettings: false,
+      showImageDialog: false,
+      imageSrc: '',
+      deptUsers: [],
+      startDate: null,
+      endDate: null,
+      logDialogVisible: false,
+      logList: [],
+      currentIssueId: null,
+      newMessage: "",
+      currentUser: {
+        userId: "",
+        userName: ""
+      }
+    };
+  },
+  computed: {
+    isFormChanged() {
+      return JSON.stringify(this.submitOrUpdateForm) !== JSON.stringify(this.originalSubmitOrUpdateForm);
+    },
+    isMobile() {
+      return window.innerWidth <= 768;
+    }
+  },
+  created() {
+    const status = this.$route.query.status;
+    if (status) {
+      this.queryParams.processingStatus = status;
+    }
+    this.getList();
+    this.getDeptUsers(); // 获取部门用户信息
+    this.getCurrentUser(); // 获取当前用户信息
+  },
+  methods: {
+    /** 查询清洁工单列表 */
+    getList() {
+      this.loading = true;
+      const params = {
+        ...this.addDateRange(this.queryParams, this.dateRange),
+        sortField: this.sortParams.prop,
+        sortOrder: this.sortParams.order
+      };
+      listMyCleaningOrder(params).then(response => {
+          this.cleaningOrderList = response.rows;
+          this.total = response.total;
+          this.loading = false;
+        }
+      );
+    },
+    // 取消按钮
+    cancel() {
+      this.submitOrUpdateOpen = false;
+      this.resetSubmitOrUpdateForm();
+    },
+    // 表单重置
+    resetSubmitOrUpdateForm() {
+      this.submitOrUpdateForm = {};
+      this.originalSubmitOrUpdateForm = {};
+      this.fileList = [];
+      this.resetForm("submitOrUpdateForm");
+    },
+    /** 搜索按钮操作 */
+    handleQuery() {
+      this.queryParams.pageNum = 1;
+      this.getList();
+    },
+    /** 重置按钮操作 */
+    resetQuery() {
+      this.dateRange = [];
+      this.startDate = null;
+      this.endDate = null;
+      this.queryParams = {
+        pageNum: 1,
+        pageSize: 10,
+        issueDetails: undefined,
+        urgencyLevel: undefined,
+        processingStatus: undefined,
+        sortField: '',
+        sortOrder: ''
+      };
+      this.resetForm("queryForm");
+      this.handleQuery();
+    },
+    // 多选框选中数据
+    handleSelectionChange(selection) {
+      this.ids = selection.map(item => item.issueId)
+      this.single = selection.length!=1
+      this.multiple = !selection.length
+    },
+    /** 提交或更新按钮操作 */
+    handleSubmitOrUpdate(row) {
+      this.resetSubmitOrUpdateForm();
+      this.submitOrUpdateForm = { ...row };
+      this.originalSubmitOrUpdateForm = { ...row };
+      if (this.submitOrUpdateForm.resultImgPath) {
+        const fullUrl = `https://schoolmaintenancestorage.blob.core.windows.net/schoolblodfiles/image/${this.submitOrUpdateForm.resultImgPath}`;
+        this.fileList.push({ name: this.submitOrUpdateForm.resultImgPath, url: fullUrl });
+      }
+      this.submitOrUpdateTitle = row.processingStatus === 'On Process' ? this.$t('cleaningOrder.submit') : this.$t('cleaningOrder.update');
+      this.submitOrUpdateOpen = true;
+    },
+    handleSubmit(row) {
+      this.resetSubmitOrUpdateForm();
+      this.submitOrUpdateForm = { ...row };
+      this.originalSubmitOrUpdateForm = { ...row };
+      if (this.submitOrUpdateForm.resultImgPath) {
+        const fullUrl = `https://schoolmaintenancestorage.blob.core.windows.net/schoolblodfiles/image/${this.submitOrUpdateForm.resultImgPath}`;
+        this.fileList.push({ name: this.submitOrUpdateForm.resultImgPath, url: fullUrl });
+      }
+      this.submitOrUpdateTitle = this.$t('cleaningOrder.submit');
+      this.submitOrUpdateOpen = true;
+    },
+    handleUpdate(row) {
+      this.resetSubmitOrUpdateForm();
+      this.submitOrUpdateForm = { ...row };
+      this.originalSubmitOrUpdateForm = { ...row };
+      if (this.submitOrUpdateForm.resultImgPath) {
+        const fullUrl = `https://schoolmaintenancestorage.blob.core.windows.net/schoolblodfiles/image/${this.submitOrUpdateForm.resultImgPath}`;
+        this.fileList.push({ name: this.submitOrUpdateForm.resultImgPath, url: fullUrl });
+      }
+      this.submitOrUpdateTitle = this.$t('cleaningOrder.update');
+      this.submitOrUpdateOpen = true;
+    },
+    /** 提交或更新表单操作 */
+    submitOrUpdateFormAction() {
+      if (this.fileList.some(file => file.status !== 'success')) {
+        this.$message.error(this.$t('cleaningOrder.uploadError'));
+        return;
+      }
+      if (this.fileList.length === 0) {
+        this.submitOrUpdateForm.resultImgPath = '';
+      } 
+      if (this.submitOrUpdateTitle === this.$t('cleaningOrder.submit')) {
+        this.updateCleaningOrderData(this.$t('cleaningOrder.submit'));
+      } else {
+        // 注释掉关于是否提醒发布人的弹窗
+        // this.$confirm('是否提醒发布人？', '提示', {
+        //   confirmButtonText: '是',
+        //   cancelButtonText: '否',
+        //   type: 'warning'
+        // }).then(() => {
+        //   this.remindIssuer();
+        //   this.updateCleaningOrderData('更新');
+        // }).catch(() => {
+        //   this.updateCleaningOrderData('更新');
+        // });
+        this.updateCleaningOrderData(this.$t('cleaningOrder.update'));
+      }
+    },
+    updateCleaningOrderData(actionType) {
+      this.$refs["submitOrUpdateForm"].validate(valid => {
+        if (valid) {
+          if (this.fileList.length === 0) {
+            this.submitOrUpdateForm.resultImgPath = '';
+          } 
+          updateCleaningOrder(this.submitOrUpdateForm).then(response => {
+            this.$modal.msgSuccess(this.$t('cleaningOrder.actionSuccess'));
+            this.submitOrUpdateOpen = false;
+            this.getList();
+            if (actionType === this.$t('cleaningOrder.submit')) {
+              const statusLabel = this.dict.type.sys_maintenance_status.find(item => item.value === this.submitOrUpdateForm.processingStatus)?.label || this.submitOrUpdateForm.processingStatus;
+              this.addLog(this.submitOrUpdateForm.issueId, actionType, this.$t('cleaningOrder.submitLog', { status: statusLabel }));
+              if (this.submitOrUpdateForm.processingStatus === 'Resolved') {
+                sendCompletionEmail(this.submitOrUpdateForm.issueId);
+              } else if (this.submitOrUpdateForm.processingStatus === 'Can not Resolve') {
+                sendIncompleteEmail(this.submitOrUpdateForm.issueId);
+              }
+            } else {
+              this.addDetailedLog(this.submitOrUpdateForm.issueId, actionType, this.originalSubmitOrUpdateForm, this.submitOrUpdateForm);
+            }
+          });
+        }
+      });
+    },
+    addDetailedLog(issueId, actionType, originalData, updatedData) {
+      const fieldNames = {
+        issueDetails: this.$t('cleaningOrder.issueDetails'),
+        urgencyLevel: this.$t('cleaningOrder.urgencyLevel'),
+        floor: this.$t('cleaningOrder.floor'),
+        classroom: this.$t('cleaningOrder.classroom'),
+        resultMessage: this.$t('cleaningOrder.resultMessage'),
+        resultImgPath: this.$t('cleaningOrder.resultImgPath'),
+        processingStatus: this.$t('cleaningOrder.processingStatus'),
+        facilityGuysName: this.$t('cleaningOrder.facilityGuysName'),
+        facilityGuyMobile: this.$t('cleaningOrder.facilityGuyMobile'),
+        facilityGuysEmail: this.$t('cleaningOrder.facilityGuysEmail')
+      };
+      const changes = [];
+      for (const key in updatedData) {
+        if (updatedData[key] !== originalData[key]) {
+          const fieldName = fieldNames[key] || key;
+          let oldValue = originalData[key];
+          let newValue = updatedData[key];
+          if (key === 'processingStatus') {
+            oldValue = this.dict.type.sys_maintenance_status.find(item => item.value === originalData[key])?.label || originalData[key];
+            newValue = this.dict.type.sys_maintenance_status.find(item => item.value === updatedData[key])?.label || updatedData[key];
+          }
+          changes.push(`${fieldName} ${this.$t('cleaningOrder.from')} "${oldValue}" ${this.$t('cleaningOrder.to')} "${newValue}"`);
+        }
+      }
+      const actionDescription = changes.length > 0 ? changes.join(", ") : this.$t('cleaningOrder.noChange');
+      const log = {
+        issueId: issueId,
+        actionType: actionType,
+        actionDescription: actionDescription,
+        userId: this.currentUser.userId,
+        userName: this.currentUser.userName
+      };
+      // addCleaningOrderLog(log).then(response => {
+      //   if (response.code !== 200) {
+      //     this.$message.error(this.$t('cleaningOrder.logFail'));
+      //   }
+      // });
+    },
+    /** 导出按钮操作 */
+    handleExport() {
+      this.download('cleaningOrder/my/export', {
+        ...this.queryParams
+      }, `cleaningOrder_my_${new Date().getTime()}.xlsx`)
+    },
+    viewImage(src) {
+      this.imageSrc = src;
+      this.showImageDialog = true;
+    },
+    handleSortChange({ prop, order }) {
+      this.sortParams.prop = prop;
+      this.sortParams.order = order;
+      this.queryParams.sortField = prop;
+      this.queryParams.sortOrder = order;
+      this.getList();
+    },
+    generateIssueId() {
+      return Math.random().toString().slice(2, 15);
+    },
+    uploadImage({ file }) {
+      const formData = new FormData();
+      formData.append('file', file);
+      uploadImage(formData).then(response => {
+        const relativePath = response.data;
+        const fullUrl = `https://schoolmaintenancestorage.blob.core.windows.net/schoolblodfiles/image/${relativePath}`;
+        this.submitOrUpdateForm.resultImgPath = relativePath;
+        this.fileList.push({ name: file.name, url: fullUrl });
+      }).catch(error => {
+        this.$message.error(this.$t('cleaningOrder.uploadFail'));
+      });
+    },
+    handlePreview(file) {
+      this.previewImage = file.url;
+      this.previewVisible = true;
+    },
+    handleRemove(file) {
+      this.fileList = this.fileList.filter(item => item.url !== file.url);
+      this.fileList = this.fileList.filter(item => item.name !== file.name);
+      if (this.submitOrUpdateForm.resultImgPath === file.name || this.submitOrUpdateForm.resultImgPath === file.url) {
+        this.submitOrUpdateForm.resultImgPath = '';
+      }
+    },
+    // 取消提交或更新
+    cancelSubmitOrUpdate() {
+      this.submitOrUpdateOpen = false;
+      this.resetSubmitOrUpdateForm();
+    },
+    remindIssuer() {
+      // 提醒发布工单人操作
+    },
+    handleStartDateChange(value) {
+      this.startDate = value;
+      this.dateRange = [this.startDate, this.endDate];
+    },
+    handleEndDateChange(value) {
+      this.endDate = value;
+      this.dateRange = [this.startDate, this.endDate];
+    },
+    handleUserChange(userName) {
+      const selectedUser = this.deptUsers.find(user => user.userName === userName);
+      if (selectedUser) {
+        this.submitOrUpdateForm.facilityGuyId = selectedUser.userId;
+        this.submitOrUpdateForm.facilityGuyMobile = selectedUser.phonenumber;
+        this.submitOrUpdateForm.facilityGuysEmail = selectedUser.email;
+      }
+    },
+    getDeptUsers() {
+      // 假设部门ID为201
+      listUserByDeptId(201).then(response => {
+        this.deptUsers = response.data;
+      });
+    },
+    // handleViewLogs(row) {
+    //   import('../all/LogDialog.vue').then(module => {
+    //     this.$options.components.LogDialog = module.default;
+    //     listCleaningOrderLogs(row.issueId).then(response => {
+    //       this.logList = response.data;
+    //       this.currentIssueId = row.issueId;
+    //       this.logDialogVisible = true;
+    //     });
+    //   });
+    // },
+    sendMessage(message) {
+      if (message.trim() !== "") {
+        const log = {
+          issueId: this.currentIssueId,
+          actionType: "沟通",
+          actionDescription: message,
+          userId: this.currentUser.userId,
+          userName: this.currentUser.userName
+        };
+        // addCleaningOrderLog(log).then(response => {
+        //   if (response.code === 200) {
+        //     this.refreshLogs();
+        //     this.newMessage = "";
+        //   } else {
+        //     this.$message.error(this.$t('cleaningOrder.sendMessageFail'));
+        //   }
+        // });
+      }
+    },
+    refreshLogs() {
+      listCleaningOrderLogs(this.currentIssueId).then(response => {
+        this.logList = response.data;
+      });
+    },
+    getCurrentUser() {
+      getUserProfile().then(response => {
+        this.currentUser.userId = response.data.userId;
+        this.currentUser.userName = response.data.userName;
+      });
+    },
+    addLog(issueId, actionType, actionDescription) {
+      const log = {
+        issueId: issueId,
+        actionType: actionType,
+        actionDescription: actionDescription,
+        userId: this.currentUser.userId,
+        userName: this.currentUser.userName
+      };
+      // addCleaningOrderLog(log).then(response => {
+      //   if (response.code !== 200) {
+      //     this.$message.error(this.$t('cleaningOrder.logFail'));
+      //   }
+      // });
+    }
+  }
+};
+</script>
+
+<style scoped>
+.card-content {
+  font-size: 12px;
+  padding: 10px;
+  position: relative;
+  min-height: 200px; /* 调整卡片高度 */
+}
+.box-card {
+  margin-bottom: 10px;
+}
+.inline-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.inline-fields > * {
+  flex: 1;
+}
+.button-container {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+.spacer {
+  height: 20px; /* 调整按钮与底部的距离 */
+}
+.mobile-date-picker .el-picker-panel {
+  left: 0 !important;
+  right: 0 !important;
+  margin: auto !important;
+  width: 100% !important;
+  max-width: 300px !important;
+}
+</style>

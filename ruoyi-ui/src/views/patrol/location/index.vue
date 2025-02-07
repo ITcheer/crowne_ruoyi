@@ -1,27 +1,27 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch">
-      <el-form-item label="地点编号" prop="id">
+      <el-form-item :label="$t('engineeringLocation.locationId')" prop="id">
         <el-input
           v-model="queryParams.id"
-          placeholder="请输入地点编号"
+          :placeholder="$t('engineeringLocation.enterLocationName')"
           clearable
           style="width: 240px"
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="地点名称" prop="locationName">
+      <el-form-item :label="$t('engineeringLocation.locationName')" prop="locationName">
         <el-input
           v-model="queryParams.locationName"
-          placeholder="请输入地点名称"
+          :placeholder="$t('engineeringLocation.enterLocationName')"
           clearable
           style="width: 240px"
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
-        <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+        <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">{{ $t('engineeringLocation.search') }}</el-button>
+        <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">{{ $t('engineeringLocation.reset') }}</el-button>
       </el-form-item>
     </el-form>
 
@@ -33,8 +33,8 @@
           icon="el-icon-plus"
           size="mini"
           @click="handleAdd"
-          v-hasPermi="['patrol:location:add']"
-        >新增</el-button>
+          v-hasPermi="['engineering:location:add']"
+        >{{ $t('engineeringLocation.add') }}</el-button>
       </el-col>
       <el-col v-if="!isMobile" :span="1.5">
         <el-button
@@ -44,8 +44,8 @@
           size="mini"
           :disabled="single"
           @click="handleUpdate"
-          v-hasPermi="['patrol:location:edit']"
-        >修改</el-button>
+          v-hasPermi="['engineering:location:edit']"
+        >{{ $t('engineeringLocation.edit') }}</el-button>
       </el-col>
       <el-col v-if="!isMobile" :span="1.5">
         <el-button
@@ -55,8 +55,8 @@
           size="mini"
           :disabled="multiple"
           @click="handleDelete"
-          v-hasPermi="['patrol:location:remove']"
-        >删除</el-button>
+          v-hasPermi="['engineering:location:remove']"
+        >{{ $t('engineeringLocation.delete') }}</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
@@ -65,44 +65,72 @@
           icon="el-icon-download"
           size="mini"
           @click="handleExport"
-          v-hasPermi="['patrol:location:export']"
-        >导出</el-button>
+          v-hasPermi="['engineering:location:export']"
+        >{{ $t('engineeringLocation.export') }}</el-button>
       </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="patrolLocationList" @selection-change="handleSelectionChange" @sort-change="handleSortChange">
+    <el-row v-if="isMobile" :gutter="10">
+      <el-col :xs="24" :sm="12" :md="8" v-for="item in patrolLocationList" :key="item.id">
+        <el-card class="box-card" shadow="hover">
+          <div class="card-content">
+            <p><strong>{{ $t('engineeringLocation.locationId') }}:</strong> {{ item.id }}</p>
+            <p><strong>{{ $t('engineeringLocation.locationName') }}:</strong> {{ item.locationName }}</p>
+            <p><strong>{{ $t('engineeringLocation.updateTime') }}:</strong> {{ formatDate(item.updateTime) }}</p>
+            <p><strong>{{ $t('engineeringLocation.locationDescription') }}:</strong> {{ item.locationDescription }}</p>
+            <p>
+              <strong>{{ $t('engineeringLocation.qrCode') }}:</strong>
+              <el-button type="text" @click="viewQRCode(item.id)">{{ $t('engineeringLocation.viewQRCode') }}</el-button>
+            </p>
+            <p>
+              <strong>{{ $t('engineeringLocation.checkInLink') }}:</strong>
+              <a :href="generateCheckInLink(item.id)" target="_blank" class="check-in-link">{{ generateCheckInLink(item.id) }}</a>
+            </p>
+            <el-button class="expand-button" type="text" @click="item.showDetails = !item.showDetails">
+              <i :class="item.showDetails ? 'el-icon-arrow-up' : 'el-icon-arrow-down'"></i>
+            </el-button>
+            <div v-if="item.showDetails" class="button-container">
+              <el-button type="success" size="mini" @click="handleUpdate(item)" v-hasPermi="['engineering:location:edit']">{{ $t('engineeringLocation.edit') }}</el-button>
+              <el-button type="danger" size="mini" @click="handleDelete(item)" v-hasPermi="['engineering:location:remove']">{{ $t('engineeringLocation.delete') }}</el-button>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <el-table v-else v-loading="loading" :data="patrolLocationList" @selection-change="handleSelectionChange" @sort-change="handleSortChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column v-if="visibleColumns.includes('id')" label="地点编号" prop="id" width="120" sortable />
-      <el-table-column v-if="visibleColumns.includes('locationName')" label="地点名称" prop="locationName" :show-overflow-tooltip="true" width="150" sortable />
-      <el-table-column v-if="visibleColumns.includes('locationDescription')" label="地点描述" prop="locationDescription" :show-overflow-tooltip="true" width="200" sortable />
-      <el-table-column v-if="visibleColumns.includes('updateTime')" label="更新时间" prop="updateTime" width="180" sortable>
+      <el-table-column v-if="visibleColumns.includes('id')" :label="$t('engineeringLocation.locationId')" prop="id" width="120" sortable />
+      <el-table-column v-if="visibleColumns.includes('locationName')" :label="$t('engineeringLocation.locationName')" prop="locationName" :show-overflow-tooltip="true" width="150" sortable />
+      <el-table-column v-if="visibleColumns.includes('locationDescription')" :label="$t('engineeringLocation.locationDescription')" prop="locationDescription" :show-overflow-tooltip="true" width="200" sortable />
+      <el-table-column v-if="visibleColumns.includes('updateTime')" :label="$t('engineeringLocation.updateTime')" prop="updateTime" width="180" sortable>
         <template slot-scope="scope">
           {{ formatDate(scope.row.updateTime) }}
         </template>
       </el-table-column>
-      <el-table-column v-if="visibleColumns.includes('qrCode')" label="打卡二维码" prop="qrCode">
+      <el-table-column v-if="visibleColumns.includes('qrCode')" :label="$t('engineeringLocation.qrCode')" prop="qrCode">
         <template slot-scope="scope">
-          <el-button type="primary" size="mini" @click="viewQRCode(scope.row.id)">查看二维码</el-button>
+          <el-button type="primary" size="mini" @click="viewQRCode(scope.row.id)">{{ $t('engineeringLocation.viewQRCode') }}</el-button>
         </template>
       </el-table-column>
-      <el-table-column v-if="visibleColumns.includes('checkInLink')" label="打卡链接" prop="checkInLink">
+      <el-table-column v-if="visibleColumns.includes('checkInLink')" :label="$t('engineeringLocation.checkInLink')" prop="checkInLink">
         <template slot-scope="scope">
           <a :href="generateCheckInLink(scope.row.id)" target="_blank" class="check-in-link">{{ generateCheckInLink(scope.row.id) }}</a>
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+      <el-table-column :label="$t('engineeringLocation.actions')" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-dropdown>
             <el-button type="text" size="mini">
               <i class="el-icon-more"></i>
             </el-button>
             <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item @click.native="handleUpdate(scope.row)" v-hasPermi="['patrol:location:edit']">
-                <i class="el-icon-edit"></i> 修改
+              <el-dropdown-item @click.native="handleUpdate(scope.row)" v-hasPermi="['engineering:location:edit']">
+                <i class="el-icon-edit"></i> {{ $t('engineeringLocation.edit') }}
               </el-dropdown-item>
-              <el-dropdown-item @click.native="handleDelete(scope.row)" v-hasPermi="['patrol:location:remove']">
-                <i class="el-icon-delete"></i> 删除
+              <el-dropdown-item @click.native="handleDelete(scope.row)" v-hasPermi="['engineering:location:remove']">
+                <i class="el-icon-delete"></i> {{ $t('engineeringLocation.delete') }}
               </el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
@@ -121,27 +149,27 @@
     <!-- 添加或修改巡逻地点对话框 -->
     <el-dialog :title="title" :visible.sync="open" :width="isMobile ? '100%' : '500px'" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="100px">
-        <el-form-item label="地点编号" prop="id">
-          <el-input v-model="form.id" placeholder="地点编号" disabled />
+        <el-form-item :label="$t('engineeringLocation.locationId')" prop="id">
+          <el-input v-model="form.id" :placeholder="$t('engineeringLocation.locationId')" disabled />
         </el-form-item>
-        <el-form-item label="地点名称" prop="locationName">
-          <el-input v-model="form.locationName" placeholder="请输入地点名称" />
+        <el-form-item :label="$t('engineeringLocation.locationName')" prop="locationName">
+          <el-input v-model="form.locationName" :placeholder="$t('engineeringLocation.enterLocationName')" />
         </el-form-item>
-        <el-form-item label="地点描述" prop="locationDescription">
-          <el-input v-model="form.locationDescription" placeholder="请输入地点描述" />
+        <el-form-item :label="$t('engineeringLocation.locationDescription')" prop="locationDescription">
+          <el-input v-model="form.locationDescription" :placeholder="$t('engineeringLocation.enterLocationDescription')" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="submitForm">确 定</el-button>
-        <el-button @click="cancel">取 消</el-button>
+        <el-button type="primary" @click="submitForm">{{ $t('engineeringLocation.confirm') }}</el-button>
+        <el-button @click="cancel">{{ $t('engineeringLocation.cancel') }}</el-button>
       </div>
     </el-dialog>
 
     <!-- 二维码查看弹窗 -->
-    <el-dialog title="打卡二维码" :visible.sync="showQRCodeDialog" :width="isMobile ? '100%' : '300px'">
+    <el-dialog :title="$t('engineeringLocation.qrCode')" :visible.sync="showQRCodeDialog" :width="isMobile ? '100%' : '300px'">
       <img :src="qrCodeSrc" alt="二维码" style="width: 100%;" />
       <div slot="footer" class="dialog-footer">
-        <el-button @click="showQRCodeDialog = false">关闭</el-button>
+        <el-button @click="showQRCodeDialog = false">{{ $t('engineeringLocation.close') }}</el-button>
       </div>
     </el-dialog>
   </div>
@@ -192,7 +220,7 @@ export default {
       // 表单校验
       rules: {
         locationName: [
-          { required: true, message: "地点名称不能为空", trigger: "blur" }
+          { required: true, message: this.$t('engineeringLocation.enterLocationName'), trigger: "blur" }
         ]
       },
       visibleColumns: ['id', 'locationName', 'locationDescription', 'updateTime', 'qrCode', 'checkInLink'],
@@ -222,7 +250,7 @@ export default {
         sortOrder: this.sortParams.order
       };
       listPatrolLocation(params).then(response => {
-          this.patrolLocationList = response.rows;
+          this.patrolLocationList = response.rows.map(item => ({ ...item, showDetails: false }));
           this.total = response.total;
           this.loading = false;
         }
@@ -271,7 +299,7 @@ export default {
     handleAdd() {
       this.reset();
       this.open = true;
-      this.title = "添加巡逻地点";
+      this.title = this.$t('engineeringLocation.add');
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
@@ -280,7 +308,7 @@ export default {
       getPatrolLocation(id).then(response => {
         this.form = response.data;
         this.open = true;
-        this.title = "修改巡逻地点";
+        this.title = this.$t('engineeringLocation.edit');
       });
     },
     /** 提交按钮 */
@@ -290,13 +318,13 @@ export default {
           this.form.updateTime = new Date();
           if (this.isUpdate()) {
             updatePatrolLocation(this.form).then(response => {
-              this.$modal.msgSuccess("修改成功");
+              this.$modal.msgSuccess(this.$t('engineeringLocation.editSuccess'));
               this.open = false;
               this.getList();
             });
           } else {
             addPatrolLocation(this.form).then(response => {
-              this.$modal.msgSuccess("新增成功");
+              this.$modal.msgSuccess(this.$t('engineeringLocation.addSuccess'));
               this.open = false;
               this.getList();
             });
@@ -311,11 +339,11 @@ export default {
     /** 删除按钮操作 */
     handleDelete(row) {
       const ids = row.id || this.ids;
-      this.$modal.confirm('是否确认删除地点编号为"' + ids + '"的数据项？').then(function() {
+      this.$modal.confirm(this.$t('engineeringLocation.deleteConfirm', { ids })).then(function() {
         return delPatrolLocation(ids);
       }).then(() => {
         this.getList();
-        this.$modal.msgSuccess("删除成功");
+        this.$modal.msgSuccess(this.$t('engineeringLocation.deleteSuccess'));
       }).catch(() => {});
     },
     /** 导出按钮操作 */
@@ -374,6 +402,25 @@ export default {
 .check-in-link {
   color: #409EFF;
   text-decoration: underline;
+}
+.card-content {
+  font-size: 12px;
+  padding: 10px;
+  position: relative;
+  min-height: 200px; /* 调整卡片高度 */
+}
+.box-card {
+  margin-bottom: 10px;
+}
+.button-container {
+  position: absolute;
+  top: 10px;
+  right: 40px; /* 将全部操作按钮左移 */
+}
+.expand-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
 }
 </style>
 

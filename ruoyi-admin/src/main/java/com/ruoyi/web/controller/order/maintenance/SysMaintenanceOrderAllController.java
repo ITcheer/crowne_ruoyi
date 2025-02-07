@@ -33,6 +33,8 @@ import com.ruoyi.system.service.ISysPersonalMessageNotificationService;
 import com.ruoyi.common.utils.file.AzureBlobUploadUtils;
 import com.ruoyi.system.service.ISysMaintenanceOrderLogService;
 import com.ruoyi.common.utils.AzureEmailUtils;
+import com.ruoyi.system.service.ISysUserService;
+import com.ruoyi.common.core.domain.entity.SysUser;
 
 /**
  * 全部维护工单 控制器
@@ -51,6 +53,9 @@ public class SysMaintenanceOrderAllController extends BaseController
 
     @Autowired
     private ISysMaintenanceOrderLogService maintenanceOrderLogService;
+
+    @Autowired
+    private ISysUserService userService;
 
     /**
      * 获取维护工单列表
@@ -94,14 +99,38 @@ public class SysMaintenanceOrderAllController extends BaseController
     {
         int result = maintenanceOrderService.insertMaintenanceOrder(order);
         if (result > 0) {
-            // 发送邮件通知
-            String recipientEmail = "619079928@qq.com";
-            String subject = "维修工单发起";
+            // 查询角色ID为101及角色为工程主管的用户的email
+            List<SysUser> engineers = userService.selectUserListByRoleId(101L);
             String workOrderUrl = "https://wonderful-tree-0e2299d00.4.azurestaticapps.net/";
+
+            for (SysUser engineer : engineers) {
+                String recipientEmail = engineer.getEmail();
+                String subject = "维修工单发起";
+                AzureEmailUtils.sendHtmlEmail(
+                    recipientEmail, 
+                    subject, 
+                    AzureEmailUtils.EmailTemplate.NEW_ORDER_NOTIFICATION, 
+                    order.getIssuerName(), 
+                    order.getIssuerEmail(), 
+                    order.getIssuerPhone(), 
+                    order.getClassroom(), 
+                    order.getFloor(), 
+                    order.getMaintenanceType(), 
+                    order.getUrgencyLevel(), 
+                    order.getIssueDetails(), 
+                    workOrderUrl
+                );
+            }
+
+            String issuerWorkOrderUrl = "http://127.0.0.1:5000/query/cn/" + order.getIssueId();
+
+            // 发送邮件通知给工单发起人
+            String issuerEmail = order.getIssuerEmail();
+            String issuerSubject = "您的工单已提起";
             AzureEmailUtils.sendHtmlEmail(
-                recipientEmail, 
-                subject, 
-                AzureEmailUtils.EmailTemplate.NEW_ORDER_NOTIFICATION, 
+                issuerEmail, 
+                issuerSubject, 
+                AzureEmailUtils.EmailTemplate.ORDER_INITIATED_NOTIFICATION, 
                 order.getIssuerName(), 
                 order.getIssuerEmail(), 
                 order.getIssuerPhone(), 
@@ -110,7 +139,7 @@ public class SysMaintenanceOrderAllController extends BaseController
                 order.getMaintenanceType(), 
                 order.getUrgencyLevel(), 
                 order.getIssueDetails(), 
-                workOrderUrl
+                issuerWorkOrderUrl
             );
 
             // 新增个人消息通知

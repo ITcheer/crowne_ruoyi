@@ -3,7 +3,7 @@
     <!-- <el-row :gutter="20">
       <el-col :sm="24" :lg="24">
         <blockquote class="text-warning" style="font-size: 14px">
-          欢迎使用若依后台管理框架
+          {{ $t('home.welcome') }}
         </blockquote>
       </el-col>
     </el-row> -->
@@ -11,67 +11,221 @@
       <el-col :sm="24" :lg="12">
         <el-card class="reduced-height">
           <div slot="header" class="clearfix">
-            <span>我的工单</span>
+            <span>{{ $t('home.myOrders') }}</span>
           </div>
-          <div class="body reduced-height-body">
-            <el-row :gutter="20">
-              <el-col :sm="24" :lg="12" class="work-order-col reduced-height">
-                <el-card class="work-order-card unassigned" @click.native="navigateToMyOrders('Undistributed')">
-                  <div class="body">
-                    <p class="three-d-text">{{ unassignedCount }}</p>
-                    <div class="work-order-text">未分配</div>
-                    <el-icon style="font-size: 48px; color: white;">
-                      <i class="el-icon-s-promotion"></i>
-                    </el-icon>
-                  </div>
-                </el-card>
-              </el-col>
-              <el-col :sm="24" :lg="12" class="work-order-col reduced-height">
-                <el-card class="work-order-card unprocessed" @click.native="navigateToMyOrders('On Process')">
-                  <div class="body">
-                    <p class="three-d-text">{{ unprocessedCount }}</p>
-                    <div class="work-order-text">处理中</div>
-                    <el-icon style="font-size: 48px; color: white;">
-                      <i class="el-icon-s-tools"></i>
-                    </el-icon>
-                  </div>
-                </el-card>
-              </el-col>
-              <el-col :sm="24" :lg="12" class="work-order-col reduced-height">
-                <el-card class="work-order-card completed" @click.native="navigateToMyOrders('Resolved')">
-                  <div class="body">
-                    <p class="three-d-text">{{ completedCount }}</p>
-                    <div class="work-order-text">已完成</div>
-                    <el-icon style="font-size: 48px; color: white;">
-                      <i class="el-icon-s-claim"></i>
-                    </el-icon>
-                  </div>
-                </el-card>
-              </el-col>
-              <el-col :sm="24" :lg="12" class="work-order-col reduced-height">
-                <el-card class="work-order-card incomplete" @click.native="navigateToMyOrders('Can not Resolve')">
-                  <div class="body">
-                    <p class="three-d-text">{{ incompleteCount }}</p>
-                    <div class="work-order-text">未完成</div>
-                    <el-icon style="font-size: 48px; color: white;">
-                      <i class="el-icon-s-release"></i>
-                    </el-icon>
-                  </div>
-                </el-card>
-              </el-col>
-            </el-row>
-          </div>
+          <el-tabs v-model="activeTab" @tab-click="handleTabClick" :tab-position="isMobile ? 'top' : 'left'">
+            <el-tab-pane :label="$t('home.repairOrders')" name="repair">
+              <div class="body reduced-height-body">
+                <el-row :gutter="20">
+                  <el-col :sm="24" :lg="12" class="work-order-col reduced-height">
+                    <el-card class="work-order-card unassigned" @click.native="navigateToMyOrders('Undistributed')">
+                      <div class="body">
+                        <p class="three-d-text">{{ unassignedCount }}</p>
+                        <div class="work-order-text">{{ $t('home.unassigned') }}</div>
+                        <el-icon style="font-size: 48px; color: white;">
+                          <i class="el-icon-s-promotion"></i>
+                        </el-icon>
+                      </div>
+                    </el-card>
+                  </el-col>
+                  <el-col :sm="24" :lg="12" class="work-order-col reduced-height">
+                    <el-card class="work-order-card unprocessed" @click.native="navigateToMyOrders('On Process')">
+                      <div class="body">
+                        <p class="three-d-text">{{ unprocessedCount }}</p>
+                        <div class="work-order-text">{{ $t('home.processing') }}</div>
+                        <el-icon style="font-size: 48px; color: white;">
+                          <i class="el-icon-s-tools"></i>
+                        </el-icon>
+                      </div>
+                    </el-card>
+                  </el-col>
+                  <el-col :sm="24" :lg="12" class="work-order-col reduced-height">
+                    <el-card class="work-order-card completed" @click.native="navigateToMyOrders('Resolved')">
+                      <div class="body">
+                        <p class="three-d-text">{{ completedCount }}</p>
+                        <div class="work-order-text">{{ $t('home.completed') }}</div>
+                        <el-icon style="font-size: 48px; color: white;">
+                          <i class="el-icon-s-claim"></i>
+                        </el-icon>
+                      </div>
+                    </el-card>
+                  </el-col>
+                  <el-col :sm="24" :lg="12" class="work-order-col reduced-height">
+                    <el-card class="work-order-card incomplete" @click.native="navigateToMyOrders('Can not Resolve')">
+                      <div class="body">
+                        <p class="three-d-text">{{ incompleteCount }}</p>
+                        <div class="work-order-text">{{ $t('home.incomplete') }}</div>
+                        <el-icon style="font-size: 48px; color: white;">
+                          <i class="el-icon-s-release"></i>
+                        </el-icon>
+                      </div>
+                    </el-card>
+                  </el-col>
+                </el-row>
+              </div>
+            </el-tab-pane>
+            <el-tab-pane :label="$t('home.cleaningOrders')" name="cleaning">
+              <div class="body reduced-height-body">
+                <el-row :gutter="20">
+                  <el-col :sm="24" :lg="12" class="work-order-col reduced-height">
+                    <el-card class="work-order-card unassigned" @click.native="navigateToMyOrders('Undistributed', 'cleaning')">
+                      <div class="body">
+                        <p class="three-d-text">{{ unassignedCleaningCount }}</p>
+                        <div class="work-order-text">{{ $t('home.unassigned') }}</div>
+                        <el-icon style="font-size: 48px; color: white;">
+                          <i class="el-icon-s-promotion"></i>
+                        </el-icon>
+                      </div>
+                    </el-card>
+                  </el-col>
+                  <el-col :sm="24" :lg="12" class="work-order-col reduced-height">
+                    <el-card class="work-order-card unprocessed" @click.native="navigateToMyOrders('On Process', 'cleaning')">
+                      <div class="body">
+                        <p class="three-d-text">{{ unprocessedCleaningCount }}</p>
+                        <div class="work-order-text">{{ $t('home.processing') }}</div>
+                        <el-icon style="font-size: 48px; color: white;">
+                          <i class="el-icon-s-tools"></i>
+                        </el-icon>
+                      </div>
+                    </el-card>
+                  </el-col>
+                  <el-col :sm="24" :lg="12" class="work-order-col reduced-height">
+                    <el-card class="work-order-card completed" @click.native="navigateToMyOrders('Resolved', 'cleaning')">
+                      <div class="body">
+                        <p class="three-d-text">{{ completedCleaningCount }}</p>
+                        <div class="work-order-text">{{ $t('home.completed') }}</div>
+                        <el-icon style="font-size: 48px; color: white;">
+                          <i class="el-icon-s-claim"></i>
+                        </el-icon>
+                      </div>
+                    </el-card>
+                  </el-col>
+                  <el-col :sm="24" :lg="12" class="work-order-col reduced-height">
+                    <el-card class="work-order-card incomplete" @click.native="navigateToMyOrders('Can not Resolve', 'cleaning')">
+                      <div class="body">
+                        <p class="three-d-text">{{ incompleteCleaningCount }}</p>
+                        <div class="work-order-text">{{ $t('home.incomplete') }}</div>
+                        <el-icon style="font-size: 48px; color: white;">
+                          <i class="el-icon-s-release"></i>
+                        </el-icon>
+                      </div>
+                    </el-card>
+                  </el-col>
+                </el-row>
+              </div>
+            </el-tab-pane>
+            <el-tab-pane :label="$t('home.schoolOrders')" name="school">
+              <div class="body reduced-height-body">
+                <el-row :gutter="20">
+                  <el-col :sm="24" :lg="12" class="work-order-col reduced-height">
+                    <el-card class="work-order-card unassigned" @click.native="navigateToMyOrders('Undistributed', 'school')">
+                      <div class="body">
+                        <p class="three-d-text">{{ unassignedSchoolCount }}</p>
+                        <div class="work-order-text">{{ $t('home.unassigned') }}</div>
+                        <el-icon style="font-size: 48px; color: white;">
+                          <i class="el-icon-s-promotion"></i>
+                        </el-icon>
+                      </div>
+                    </el-card>
+                  </el-col>
+                  <el-col :sm="24" :lg="12" class="work-order-col reduced-height">
+                    <el-card class="work-order-card unprocessed" @click.native="navigateToMyOrders('On Process', 'school')">
+                      <div class="body">
+                        <p class="three-d-text">{{ unprocessedSchoolCount }}</p>
+                        <div class="work-order-text">{{ $t('home.processing') }}</div>
+                        <el-icon style="font-size: 48px; color: white;">
+                          <i class="el-icon-s-tools"></i>
+                        </el-icon>
+                      </div>
+                    </el-card>
+                  </el-col>
+                  <el-col :sm="24" :lg="12" class="work-order-col reduced-height">
+                    <el-card class="work-order-card completed" @click.native="navigateToMyOrders('Resolved', 'school')">
+                      <div class="body">
+                        <p class="three-d-text">{{ completedSchoolCount }}</p>
+                        <div class="work-order-text">{{ $t('home.completed') }}</div>
+                        <el-icon style="font-size: 48px; color: white;">
+                          <i class="el-icon-s-claim"></i>
+                        </el-icon>
+                      </div>
+                    </el-card>
+                  </el-col>
+                  <el-col :sm="24" :lg="12" class="work-order-col reduced-height">
+                    <el-card class="work-order-card incomplete" @click.native="navigateToMyOrders('Can not Resolve', 'school')">
+                      <div class="body">
+                        <p class="three-d-text">{{ incompleteSchoolCount }}</p>
+                        <div class="work-order-text">{{ $t('home.incomplete') }}</div>
+                        <el-icon style="font-size: 48px; color: white;">
+                          <i class="el-icon-s-release"></i>
+                        </el-icon>
+                      </div>
+                    </el-card>
+                  </el-col>
+                </el-row>
+              </div>
+            </el-tab-pane>
+            <el-tab-pane :label="$t('home.complaintOrders')" name="complaint">
+              <div class="body reduced-height-body">
+                <el-row :gutter="20">
+                  <el-col :sm="24" :lg="12" class="work-order-col reduced-height">
+                    <el-card class="work-order-card unassigned" @click.native="navigateToMyOrders('Untreated', 'complaint')">
+                      <div class="body">
+                        <p class="three-d-text">{{ unassignedComplaintCount }}</p>
+                        <div class="work-order-text">{{ $t('home.unassigned') }}</div>
+                        <el-icon style="font-size: 48px; color: white;">
+                          <i class="el-icon-s-promotion"></i>
+                        </el-icon>
+                      </div>
+                    </el-card>
+                  </el-col>
+                  <el-col :sm="24" :lg="12" class="work-order-col reduced-height">
+                    <el-card class="work-order-card unprocessed" @click.native="navigateToMyOrders('On Process', 'complaint')">
+                      <div class="body">
+                        <p class="three-d-text">{{ unprocessedComplaintCount }}</p>
+                        <div class="work-order-text">{{ $t('home.processing') }}</div>
+                        <el-icon style="font-size: 48px; color: white;">
+                          <i class="el-icon-s-tools"></i>
+                        </el-icon>
+                      </div>
+                    </el-card>
+                  </el-col>
+                  <el-col :sm="24" :lg="12" class="work-order-col reduced-height">
+                    <el-card class="work-order-card completed" @click.native="navigateToMyOrders('Resolved', 'complaint')">
+                      <div class="body">
+                        <p class="three-d-text">{{ completedComplaintCount }}</p>
+                        <div class="work-order-text">{{ $t('home.completed') }}</div>
+                        <el-icon style="font-size: 48px; color: white;">
+                          <i class="el-icon-s-claim"></i>
+                        </el-icon>
+                      </div>
+                    </el-card>
+                  </el-col>
+                  <el-col :sm="24" :lg="12" class="work-order-col reduced-height">
+                    <el-card class="work-order-card incomplete" @click.native="navigateToMyOrders('Can not Resolve', 'complaint')">
+                      <div class="body">
+                        <p class="three-d-text">{{ incompleteComplaintCount }}</p>
+                        <div class="work-order-text">{{ $t('home.incomplete') }}</div>
+                        <el-icon style="font-size: 48px; color: white;">
+                          <i class="el-icon-s-release"></i>
+                        </el-icon>
+                      </div>
+                    </el-card>
+                  </el-col>
+                </el-row>
+              </div>
+            </el-tab-pane>
+          </el-tabs>
         </el-card>
         <el-row :gutter="20" style="margin-top: 20px;">
           <el-col :span="12">
             <el-card>
               <div slot="header" class="clearfix">
-                <span>系统通知</span>
+                <span>{{ $t('home.systemNotifications') }}</span>
               </div>
               <div class="body" style="text-align: center; font-size: 24px; padding: 10px;">
                 <el-timeline>
                   <el-timeline-item v-for="item in notifications" :key="item.id" :timestamp="item.timestamp">
-                    {{ item.content }}
+                    {{ $t(`messages.${item.content}`) }}
                   </el-timeline-item>
                 </el-timeline>
               </div>
@@ -80,12 +234,12 @@
           <el-col :span="12">
             <el-card>
               <div slot="header" class="clearfix">
-                <span>帮助手册</span>
+                <span>{{ $t('home.helpManual') }}</span>
               </div>
               <div class="body" style="text-align: center; font-size: 24px; padding: 10px;">
                 <ul>
                   <li v-for="item in helpManuals" :key="item.id">
-                    <el-link :href="item.link" target="_blank">{{ item.title }}</el-link>
+                    <el-link :href="item.link" target="_blank">{{ $t(`messages.${item.title}`) }}</el-link>
                   </li>
                 </ul>
               </div>
@@ -96,14 +250,14 @@
       <el-col :sm="24" :lg="12">
         <el-card>
           <div slot="header" class="clearfix">
-            <span>工单统计</span>
+            <span>{{ $t('home.orderStatistics') }}</span>
           </div>
           <div class="body" style="text-align: center; font-size: 24px; padding: 10px;">
             <el-row :gutter="20">
               <el-col :sm="24" :lg="12">
                 <el-card>
                   <div slot="header" class="clearfix">
-                    <span>总工单数</span>
+                    <span>{{ $t('home.totalOrders') }}</span>
                   </div>
                   <div class="body" style="text-align: center; font-size: 24px; color: #409EFF; padding: 10px;">
                     <el-icon style="font-size: 48px; color: #409EFF;">
@@ -116,7 +270,7 @@
               <el-col :sm="24" :lg="12">
                 <el-card>
                   <div slot="header" class="clearfix">
-                    <span>今日新增</span>
+                    <span>{{ $t('home.newOrdersToday') }}</span>
                   </div>
                   <div class="body" style="text-align: center; font-size: 24px; color: #67C23A; padding: 10px;">
                     <el-icon style="font-size: 48px; color: #67C23A;">
@@ -131,7 +285,7 @@
               <el-col :sm="24" :lg="12">
                 <el-card>
                   <div slot="header" class="clearfix">
-                    <span>工单类型</span>
+                    <span>{{ $t('home.orderTypes') }}</span>
                   </div>
                   <div class="body">
                     <div ref="typeChart" style="height: 300px;"></div>
@@ -141,7 +295,7 @@
               <el-col :sm="24" :lg="12">
                 <el-card>
                   <div slot="header" class="clearfix">
-                    <span>工单状态</span>
+                    <span>{{ $t('home.orderStatus') }}</span>
                   </div>
                   <div class="body">
                     <div ref="statusChart" style="height: 300px;"></div>
@@ -158,8 +312,7 @@
 
 <script>
 import * as echarts from 'echarts';
-import { listMyMaintenanceOrder } from "@/api/maintenanceOrder/my/maintenanceOrderMy";
-import { listMaintenanceOrder } from "@/api/maintenanceOrder/all/maintenanceOrderAll";
+import { listMyMaintenanceOrder, listMyCleaningOrder, listMyFacilityOrder, listMyComplaintOrder, listAllOrders } from "@/api/homePage/homePage";
 import { useRouter } from 'vue-router';
 
 export default {
@@ -175,14 +328,29 @@ export default {
       totalOrders: 0,
       newOrdersToday: 0,
       notifications: [
-        { id: 1, timestamp: '2023-10-01', content: '系统维护通知' },
-        { id: 2, timestamp: '2023-10-02', content: '新功能上线通知' }
+        { id: 1, timestamp: '2023-10-01', content: 'systemMaintenance' },
+        { id: 2, timestamp: '2023-10-02', content: 'newFeature' }
       ],
       helpManuals: [
-        { id: 1, title: '如何创建工单', link: 'https://example.com/help/create-ticket' },
-        { id: 2, title: '如何处理工单', link: 'https://example.com/help/process-ticket' },
-        { id: 3, title: '工单状态说明', link: 'https://example.com/help/ticket-status' }
-      ]
+        { id: 1, title: 'createOrder', link: 'https://example.com/help/create-ticket' },
+        { id: 2, title: 'processOrder', link: 'https://example.com/help/process-ticket' },
+        { id: 3, title: 'orderStatus', link: 'https://example.com/help/ticket-status' }
+      ],
+      activeTab: 'repair',
+      unassignedCleaningCount: 0,
+      unprocessedCleaningCount: 0,
+      completedCleaningCount: 0,
+      incompleteCleaningCount: 0,
+      unassignedSchoolCount: 0,
+      unprocessedSchoolCount: 0,
+      completedSchoolCount: 0,
+      incompleteSchoolCount: 0,
+      unassignedComplaintCount: 0,
+      unprocessedComplaintCount: 0,
+      completedComplaintCount: 0,
+      incompleteComplaintCount: 0,
+      tabInterval: null,
+      isMobile: window.innerWidth <= 768
     };
   },
   mounted() {
@@ -190,7 +358,13 @@ export default {
       this.initCharts();
       this.getMyWorkOrderCounts();
       this.getAllWorkOrderCounts();
+      this.startTabRotation();
     });
+    window.addEventListener('resize', this.handleResize);
+  },
+  beforeDestroy() {
+    window.removeEventListener('resize', this.handleResize);
+    this.stopTabRotation();
   },
   methods: {
     goTarget(href) {
@@ -208,13 +382,37 @@ export default {
         this.completedCount = orders.filter(order => order.processingStatus === 'Resolved').length;
         this.incompleteCount = orders.filter(order => order.processingStatus === 'Can not Resolve').length;
       });
+
+      listMyCleaningOrder(params).then(response => {
+        const orders = response.rows;
+        this.unassignedCleaningCount = orders.filter(order => order.processingStatus === 'Undistributed').length;
+        this.unprocessedCleaningCount = orders.filter(order => order.processingStatus === 'On Process').length;
+        this.completedCleaningCount = orders.filter(order => order.processingStatus === 'Resolved').length;
+        this.incompleteCleaningCount = orders.filter(order => order.processingStatus === 'Can not Resolve').length;
+      });
+
+      listMyFacilityOrder(params).then(response => {
+        const orders = response.rows;
+        this.unassignedSchoolCount = orders.filter(order => order.processingStatus === 'Undistributed').length;
+        this.unprocessedSchoolCount = orders.filter(order => order.processingStatus === 'On Process').length;
+        this.completedSchoolCount = orders.filter(order => order.processingStatus === 'Resolved').length;
+        this.incompleteSchoolCount = orders.filter(order => order.processingStatus === 'Can not Resolve').length;
+      });
+
+      listMyComplaintOrder(params).then(response => {
+        const orders = response.rows;
+        this.unassignedComplaintCount = orders.filter(order => order.processingStatus === 'Untreated').length;
+        this.unprocessedComplaintCount = orders.filter(order => order.processingStatus === 'On Process').length;
+        this.completedComplaintCount = orders.filter(order => order.processingStatus === 'Resolved').length;
+        this.incompleteComplaintCount = orders.filter(order => order.processingStatus === 'Can not Resolve').length;
+      });
     },
     getAllWorkOrderCounts() {
       const params = {
         pageNum: 1,
         pageSize: 1000 // 假设最大数量
       };
-      listMaintenanceOrder(params).then(response => {
+      listAllOrders(params).then(response => {
         const orders = response.rows;
         this.totalOrders = orders.length;
         const today = new Date().toISOString().slice(0, 10);
@@ -223,12 +421,19 @@ export default {
       });
     },
     updateCharts(orders) {
-      const defaultStatuses = ['Undistributed', 'On Process', 'Resolved', 'Can not Resolve'];
-      const defaultTypes = ['Maintain', 'Illumination', 'Install', 'Aircon'];
+      const defaultStatuses = ['未分配', '处理中', '已完成', '未完成'];
+      const defaultTypes = ['维修', '清洁', '校工', '投诉'];
 
       const statusData = orders.reduce((acc, order) => {
-        const status = order.processingStatus;
-        const type = order.maintenanceType;
+        const statusMap = {
+          'Undistributed': '未分配',
+          'On Process': '处理中',
+          'Resolved': '已完成',
+          'Can not Resolve': '未完成',
+          'Untreated': '未处理'
+        };
+        const status = statusMap[order.processingStatus];
+        const type = order.orderType;
         if (!acc[status]) {
           acc[status] = {};
         }
@@ -319,7 +524,7 @@ export default {
       statusChart.setOption(statusChartOptions);
 
       const typeData = orders.reduce((acc, order) => {
-        const type = order.maintenanceType;
+        const type = order.orderType;
         if (acc[type]) {
           acc[type]++;
         } else {
@@ -380,7 +585,7 @@ export default {
         },
         series: [
           {
-            name: '工单类型',
+            name: this.$t('home.orderTypes'),
             type: 'pie',
             radius: '50%',
             data: [],
@@ -436,11 +641,49 @@ export default {
       typeChart.setOption(typeChartOptions);
       statusChart.setOption(statusChartOptions);
     },
-    navigateToMyOrders(status) {
+    navigateToMyOrders(status, type = 'repair') {
+      let path = '';
+      switch (type) {
+        case 'repair':
+          path = '/maintenanceOrder/my';
+          break;
+        case 'cleaning':
+          path = '/cleaningOrder/my';
+          break;
+        case 'school':
+          path = '/facilityOrder/my';
+          break;
+        case 'complaint':
+          path = '/complaintOrder/all';
+          break;
+        default:
+          path = '/maintenanceOrder/my';
+      }
       this.$router.push({
-        path: '/maintenanceOrder/my',
-        query: { status }
+        path: path,
+        query: { status, type }
       });
+    },
+    handleResize() {
+      this.isMobile = window.innerWidth <= 768;
+    },
+    startTabRotation() {
+      this.tabInterval = setInterval(() => {
+        const tabs = ['repair', 'cleaning', 'school', 'complaint'];
+        const currentIndex = tabs.indexOf(this.activeTab);
+        const nextIndex = (currentIndex + 1) % tabs.length;
+        this.activeTab = tabs[nextIndex];
+      }, 5000);
+    },
+    stopTabRotation() {
+      if (this.tabInterval) {
+        clearInterval(this.tabInterval);
+        this.tabInterval = null;
+      }
+    },
+    handleTabClick() {
+      this.stopTabRotation();
+      this.startTabRotation();
     }
   }
 };
@@ -474,6 +717,11 @@ export default {
   position: relative;
   overflow: hidden;
   cursor: pointer;
+  transition: transform 0.5s ease;
+}
+
+.work-order-card:hover {
+  transform: scale(1.05);
 }
 
 .work-order-card::after {

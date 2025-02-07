@@ -12,14 +12,17 @@ import com.microsoft.graph.requests.GraphServiceClient;
 import com.microsoft.graph.models.UserSendMailParameterSet;
 import okhttp3.Request;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
-import org.springframework.util.ResourceUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
 @Component
 public class AzureEmailUtils {
@@ -28,6 +31,8 @@ public class AzureEmailUtils {
     private static String clientSecret;
     private static String tenantId;
     private static String userId;
+
+    private static ResourceLoader resourceLoader;
 
     @Value("${azure.client-id}")
     public void setClientId(String clientId) {
@@ -47,6 +52,11 @@ public class AzureEmailUtils {
     @Value("${azure.user-id}")
     public void setUserId(String userId) {
         AzureEmailUtils.userId = userId;
+    }
+
+    @Autowired
+    public void setResourceLoader(ResourceLoader resourceLoader) {
+        AzureEmailUtils.resourceLoader = resourceLoader;
     }
 
     private static GraphServiceClient<Request> graphClient;
@@ -123,15 +133,24 @@ public class AzureEmailUtils {
 
     private static String loadTemplate(String templatePath) {
         try {
-            return new String(Files.readAllBytes(Paths.get(ResourceUtils.getFile(templatePath).toURI())), "UTF-8");
+            Resource resource = resourceLoader.getResource(templatePath);
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8))) {
+                StringBuilder content = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    content.append(line).append(System.lineSeparator());
+                }
+                return content.toString();
+            }
         } catch (IOException e) {
-            throw new RuntimeException("Failed to load email template", e);
+            throw new RuntimeException("Failed to load email template！！！", e);
         }
     }
 
     private static String replacePlaceholders(String template, Object... args) {
         for (int i = 0; i < args.length; i++) {
-            template = template.replace("${" + i + "}", args[i].toString());
+            String value = args[i] != null ? args[i].toString() : "";
+            template = template.replace("${" + i + "}", value);
         }
         return template;
     }
@@ -139,7 +158,12 @@ public class AzureEmailUtils {
     public enum EmailTemplate {
         NEW_ORDER_NOTIFICATION("classpath:templates/new_order_notification.html"),
         ASSIGN_ORDER_NOTIFICATION("classpath:templates/assign_order_notification.html"),
-        ORDER_ASSIGNED_NOTIFICATION("classpath:templates/order_assigned_notification.html");
+        ORDER_ASSIGNED_NOTIFICATION("classpath:templates/order_assigned_notification.html"),
+        ORDER_INITIATED_NOTIFICATION("classpath:templates/order_initiated_notification.html"),
+        ORDER_COMPLETED_NOTIFICATION("classpath:templates/order_completed_notification.html"),
+        ORDER_INCOMPLETE_NOTIFICATION("classpath:templates/order_incomplete_notification.html"),
+        COMPLAINT_ORDER_ACCEPTED_NOTIFICATION("classpath:templates/complaint_order_accepted_notification.html"),
+        COMPLAINT_ORDER_FEEDBACK_NOTIFICATION("classpath:templates/complaint_order_feedback_notification.html");
 
         private final String templatePath;
 

@@ -3,14 +3,14 @@
     <template v-if="hasOneShowingChild(item.children,item) && (!onlyOneChild.children||onlyOneChild.noShowingChildren)&&!item.alwaysShow">
       <app-link v-if="onlyOneChild.meta" :to="resolvePath(onlyOneChild.path, onlyOneChild.query)">
         <el-menu-item :index="resolvePath(onlyOneChild.path)" :class="{'submenu-title-noDropdown':!isNest}">
-          <item :icon="onlyOneChild.meta.icon||(item.meta&&item.meta.icon)" :title="onlyOneChild.meta.title" />
+          <item :icon="onlyOneChild.meta.icon||(item.meta&&item.meta.icon)" :title="menusTitle(onlyOneChild.meta.title)" />
         </el-menu-item>
       </app-link>
     </template>
 
     <el-submenu v-else ref="subMenu" :index="resolvePath(item.path)" popper-append-to-body>
       <template slot="title">
-        <item v-if="item.meta" :icon="item.meta && item.meta.icon" :title="item.meta.title" />
+        <item v-if="item.meta" :icon="item.meta && item.meta.icon" :title="menusTitle(item.meta.title)" />
       </template>
       <sidebar-item
         v-for="(child, index) in item.children"
@@ -30,6 +30,7 @@ import { isExternal } from '@/utils/validate'
 import Item from './Item'
 import AppLink from './Link'
 import FixiOSBug from './FixiOSBug'
+// import i18n from '@/i18n' // 引入i18n实例
 
 export default {
   name: 'SidebarItem',
@@ -55,6 +56,13 @@ export default {
     return {}
   },
   methods: {
+    menusTitle(item) {
+      if (this.$te('menus.' + item)) {
+        return this.$t('menus.' + item)
+      }
+      return item
+    },
+
     hasOneShowingChild(children = [], parent) {
       if (!children) {
         children = [];

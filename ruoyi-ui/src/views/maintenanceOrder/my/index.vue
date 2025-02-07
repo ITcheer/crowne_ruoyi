@@ -2,19 +2,19 @@
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch">
       <!-- 搜索表单项 -->
-      <el-form-item label="问题详情" prop="issueDetails">
+      <el-form-item :label="$t('maintenanceOrder.issueDetails')" prop="issueDetails">
         <el-input
           v-model="queryParams.issueDetails"
-          placeholder="请输入问题详情"
+          :placeholder="$t('maintenanceOrder.enterIssueDetails')"
           clearable
           style="width: 240px"
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="紧急程度" prop="urgencyLevel">
+      <el-form-item :label="$t('maintenanceOrder.urgencyLevel')" prop="urgencyLevel">
         <el-select
           v-model="queryParams.urgencyLevel"
-          placeholder="紧急程度"
+          :placeholder="$t('maintenanceOrder.urgencyLevel')"
           clearable
           style="width: 240px"
         >
@@ -26,10 +26,10 @@
           />
         </el-select>
       </el-form-item>
-      <el-form-item label="处理情况" prop="processingStatus">
+      <el-form-item :label="$t('maintenanceOrder.processingStatus')" prop="processingStatus">
         <el-select
           v-model="queryParams.processingStatus"
-          placeholder="处理情况"
+          :placeholder="$t('maintenanceOrder.processingStatus')"
           clearable
           style="width: 240px"
         >
@@ -41,7 +41,7 @@
           />
         </el-select>
       </el-form-item>
-      <el-form-item label="日期">
+      <el-form-item :label="$t('maintenanceOrder.date')">
         <template v-if="isMobile">
           <div style="display: flex; gap: 10px;">
             <el-date-picker
@@ -49,7 +49,7 @@
               style="flex: 1;"
               value-format="yyyyMMdd"
               type="date"
-              placeholder="开始日期"
+              :placeholder="$t('maintenanceOrder.startDate')"
               :popper-class="isMobile ? 'mobile-date-picker' : ''"
               :append-to-body="isMobile"
               @change="handleStartDateChange"
@@ -59,7 +59,7 @@
               style="flex: 1;"
               value-format="yyyyMMdd"
               type="date"
-              placeholder="结束日期"
+              :placeholder="$t('maintenanceOrder.endDate')"
               :popper-class="isMobile ? 'mobile-date-picker' : ''"
               :append-to-body="isMobile"
               @change="handleEndDateChange"
@@ -73,13 +73,13 @@
           value-format="yyyyMMdd"
           type="daterange"
           range-separator="-"
-          start-placeholder="开始日期"
-          end-placeholder="结束日期"
+          :start-placeholder="$t('maintenanceOrder.startDate')"
+          :end-placeholder="$t('maintenanceOrder.endDate')"
         ></el-date-picker>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
-        <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+        <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">{{ $t('maintenanceOrder.search') }}</el-button>
+        <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">{{ $t('maintenanceOrder.reset') }}</el-button>
       </el-form-item>
     </el-form>
 
@@ -102,16 +102,16 @@
           icon="el-icon-download"
           size="mini"
           @click="handleExport"
-        >导出</el-button>
+        >{{ $t('maintenanceOrder.export') }}</el-button>
       </el-col>
-      <el-col :span="1.5">
+      <el-col v-if="!isMobile" :span="1.5">
         <el-button
           type="primary"
           plain
           icon="el-icon-setting"
           size="mini"
           @click="showColumnSettings = true"
-        >字段设置</el-button>
+        >{{ $t('maintenanceOrder.columnSettings') }}</el-button>
       </el-col>
     </el-row>
 
@@ -119,26 +119,28 @@
       <el-col :xs="24" :sm="12" :md="8" v-for="item in maintenanceOrderList" :key="item.issueId">
         <el-card class="box-card" shadow="hover">
           <div class="card-content">
-            <p><strong>发布者名称:</strong> {{ item.issuerName }}</p>
-            <p><strong>问题详情:</strong> {{ item.issueDetails }}</p>
-            <p><strong>日期:</strong> {{ parseTime(item.date) }}</p>
+            <p><strong>{{ $t('maintenanceOrder.issuerName') }}:</strong> {{ item.issuerName }}</p>
+            <p><strong>{{ $t('maintenanceOrder.issueDetails') }}:</strong> {{ item.issueDetails }}</p>
+            <p><strong>{{ $t('maintenanceOrder.date') }}:</strong> {{ parseTime(item.date) }}</p>
             <p>
-              <strong>教室:</strong> {{ item.classroom }} 
-              <strong>楼层:</strong> {{ item.floor }}
+              <strong>{{ $t('maintenanceOrder.classroom') }}:</strong> {{ item.classroom }} 
+              <strong>{{ $t('maintenanceOrder.floor') }}:</strong> {{ item.floor }}
             </p>
             <p class="inline-fields">
-              <strong>维修类型:</strong> <dict-tag :options="dict.type.sys_maintenance_type" :value="item.maintenanceType"/>
-              <strong>紧急程度:</strong> <dict-tag :options="dict.type.sys_urgency_level" :value="item.urgencyLevel"/>
-              <strong>处理状态:</strong> <dict-tag :options="dict.type.sys_maintenance_status" :value="item.processingStatus"/>
+              <strong>{{ $t('maintenanceOrder.maintenanceType') }}:</strong> <dict-tag :options="dict.type.sys_maintenance_type" :value="item.maintenanceType"/>
+              <strong>{{ $t('maintenanceOrder.urgencyLevel') }}:</strong> <dict-tag :options="dict.type.sys_urgency_level" :value="item.urgencyLevel"/>
+              <strong>{{ $t('maintenanceOrder.processingStatus') }}:</strong> <dict-tag :options="dict.type.sys_maintenance_status" :value="item.processingStatus"/>
             </p>
             <p>
-              <strong>问题照片:</strong>
+              <strong>{{ $t('maintenanceOrder.issuePhoto') }}:</strong>
               <el-button type="text" :style="{ color: item.issuePhoto ? '' : 'gray' }" @click="item.issuePhoto ? viewImage('https://schoolmaintenancestorage.blob.core.windows.net/schoolblodfiles/image/' + item.issuePhoto) : null">
-                {{ item.issuePhoto ? '查看图片' : '暂无' }}
+                {{ item.issuePhoto ? $t('maintenanceOrder.viewImage') : $t('maintenanceOrder.noImage') }}
               </el-button>
             </p>
             <div class="button-container">
-              <el-button type="primary" size="mini" @click="handleSubmitOrUpdate(item)">{{ item.processingStatus === 'On Process' ? '提交' : '更新' }}</el-button>
+              <el-button :type="item.processingStatus === 'On Process' ? 'success' : 'primary'" size="mini" @click="handleSubmitOrUpdate(item)">
+                {{ item.processingStatus === 'On Process' ? $t('maintenanceOrder.submit') : $t('maintenanceOrder.update') }}
+              </el-button>
             </div>
           </div>
         </el-card>
@@ -146,54 +148,54 @@
     </el-row>
     <el-table v-else v-loading="loading" :data="maintenanceOrderList" @selection-change="handleSelectionChange" @sort-change="handleSortChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column v-if="visibleColumns.includes('issueId')" label="工单编号" prop="issueId" width="120" sortable />
-      <el-table-column v-if="visibleColumns.includes('issuerName')" label="发布者名称" prop="issuerName" :show-overflow-tooltip="true" width="150" sortable />
-      <el-table-column v-if="visibleColumns.includes('issuePhoto')" label="问题照片" prop="issuePhoto" :show-overflow-tooltip="true" width="120">
+      <el-table-column v-if="visibleColumns.includes('issueId')" :label="$t('maintenanceOrder.issueId')" prop="issueId" width="120" sortable />
+      <el-table-column v-if="visibleColumns.includes('issuerName')" :label="$t('maintenanceOrder.issuerName')" prop="issuerName" :show-overflow-tooltip="true" width="150" sortable />
+      <el-table-column v-if="visibleColumns.includes('issuePhoto')" :label="$t('maintenanceOrder.issuePhoto')" prop="issuePhoto" :show-overflow-tooltip="true" width="120">
         <template slot-scope="scope">
           <el-button type="text" :style="{ color: scope.row.issuePhoto ? '' : 'gray' }" @click="scope.row.issuePhoto ? viewImage('https://schoolmaintenancestorage.blob.core.windows.net/schoolblodfiles/image/' + scope.row.issuePhoto) : null">
-            {{ scope.row.issuePhoto ? '查看图片' : '暂无' }}
+            {{ scope.row.issuePhoto ? $t('maintenanceOrder.viewImage') : $t('maintenanceOrder.noImage') }}
           </el-button>
         </template>
       </el-table-column>
-      <el-table-column v-if="visibleColumns.includes('issuerEmail')" label="发布者邮箱" prop="issuerEmail" :show-overflow-tooltip="true" width="150" sortable />
-      <el-table-column v-if="visibleColumns.includes('issueDetails')" label="问题详情" prop="issueDetails" :show-overflow-tooltip="true" width="200" sortable />
-      <el-table-column v-if="visibleColumns.includes('classroom')" label="教室" prop="classroom" :show-overflow-tooltip="true" width="100" sortable />
-      <el-table-column v-if="visibleColumns.includes('floor')" label="楼层" prop="floor" :show-overflow-tooltip="true" width="80" sortable />
-      <el-table-column v-if="visibleColumns.includes('maintenanceType')" label="维修类型" align="center" prop="maintenanceType" sortable>
+      <el-table-column v-if="visibleColumns.includes('issuerEmail')" :label="$t('maintenanceOrder.issuerEmail')" prop="issuerEmail" :show-overflow-tooltip="true" width="150" sortable />
+      <el-table-column v-if="visibleColumns.includes('issueDetails')" :label="$t('maintenanceOrder.issueDetails')" prop="issueDetails" :show-overflow-tooltip="true" width="200" sortable />
+      <el-table-column v-if="visibleColumns.includes('classroom')" :label="$t('maintenanceOrder.classroom')" prop="classroom" :show-overflow-tooltip="true" width="100" sortable />
+      <el-table-column v-if="visibleColumns.includes('floor')" :label="$t('maintenanceOrder.floor')" prop="floor" :show-overflow-tooltip="true" width="80" sortable />
+      <el-table-column v-if="visibleColumns.includes('maintenanceType')" :label="$t('maintenanceOrder.maintenanceType')" align="center" prop="maintenanceType" sortable>
         <template slot-scope="scope">
           <dict-tag :options="dict.type.sys_maintenance_type" :value="scope.row.maintenanceType"/>
         </template>
       </el-table-column>
-      <el-table-column v-if="visibleColumns.includes('urgencyLevel')" label="紧急程度" align="center" prop="urgencyLevel" sortable>
+      <el-table-column v-if="visibleColumns.includes('urgencyLevel')" :label="$t('maintenanceOrder.urgencyLevel')" align="center" prop="urgencyLevel" sortable>
         <template slot-scope="scope">
           <dict-tag :options="dict.type.sys_urgency_level" :value="scope.row.urgencyLevel"/>
         </template>
       </el-table-column>
-      <el-table-column v-if="visibleColumns.includes('issuerPhone')" label="发布者电话" prop="issuerPhone" :show-overflow-tooltip="true" width="150" sortable />
-      <el-table-column v-if="visibleColumns.includes('facilityGuyId')" label="维修人员ID" prop="facilityGuyId" :show-overflow-tooltip="true" width="150" sortable />
-      <el-table-column v-if="visibleColumns.includes('date')" label="日期" align="center" prop="date" width="180" sortable>
+      <el-table-column v-if="visibleColumns.includes('issuerPhone')" :label="$t('maintenanceOrder.issuerPhone')" prop="issuerPhone" :show-overflow-tooltip="true" width="150" sortable />
+      <el-table-column v-if="visibleColumns.includes('facilityGuyId')" :label="$t('maintenanceOrder.facilityGuyId')" prop="facilityGuyId" :show-overflow-tooltip="true" width="150" sortable />
+      <el-table-column v-if="visibleColumns.includes('date')" :label="$t('maintenanceOrder.date')" align="center" prop="date" width="180" sortable>
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.date) }}</span>
         </template>
       </el-table-column>
-      <el-table-column v-if="visibleColumns.includes('facilityGuysEmail')" label="维修人员邮箱" prop="facilityGuysEmail" :show-overflow-tooltip="true" width="150" sortable />
-      <el-table-column v-if="visibleColumns.includes('facilityGuysName')" label="维修人员姓名" prop="facilityGuysName" :show-overflow-tooltip="true" width="150" sortable />
-      <el-table-column v-if="visibleColumns.includes('facilityGuyMobile')" label="维修人员电话" prop="facilityGuyMobile" :show-overflow-tooltip="true" width="150" sortable />
-      <el-table-column v-if="visibleColumns.includes('facilityGuySupervisor')" label="主管邮箱" prop="facilityGuySupervisor" :show-overflow-tooltip="true" width="150" sortable />
-      <el-table-column v-if="visibleColumns.includes('resultImgPath')" label="处理图片" prop="resultImgPath" :show-overflow-tooltip="true" width="120">
+      <el-table-column v-if="visibleColumns.includes('facilityGuysEmail')" :label="$t('maintenanceOrder.facilityGuysEmail')" prop="facilityGuysEmail" :show-overflow-tooltip="true" width="150" sortable />
+      <el-table-column v-if="visibleColumns.includes('facilityGuysName')" :label="$t('maintenanceOrder.facilityGuysName')" prop="facilityGuysName" :show-overflow-tooltip="true" width="150" sortable />
+      <el-table-column v-if="visibleColumns.includes('facilityGuyMobile')" :label="$t('maintenanceOrder.facilityGuyMobile')" prop="facilityGuyMobile" :show-overflow-tooltip="true" width="150" sortable />
+      <el-table-column v-if="visibleColumns.includes('facilityGuySupervisor')" :label="$t('maintenanceOrder.facilityGuySupervisor')" prop="facilityGuySupervisor" :show-overflow-tooltip="true" width="150" sortable />
+      <el-table-column v-if="visibleColumns.includes('resultImgPath')" :label="$t('maintenanceOrder.resultImgPath')" prop="resultImgPath" :show-overflow-tooltip="true" width="120">
         <template slot-scope="scope">
           <el-button type="text" :style="{ color: scope.row.resultImgPath ? '' : 'gray' }" @click="scope.row.resultImgPath ? viewImage('https://schoolmaintenancestorage.blob.core.windows.net/schoolblodfiles/image/' + scope.row.resultImgPath) : null">
-            {{ scope.row.resultImgPath ? '查看图片' : '暂无' }}
+            {{ scope.row.resultImgPath ? $t('maintenanceOrder.viewImage') : $t('maintenanceOrder.noImage') }}
           </el-button>
         </template>
       </el-table-column>
-      <el-table-column v-if="visibleColumns.includes('resultMessage')" label="结果信息" prop="resultMessage" :show-overflow-tooltip="true" width="150" sortable />
-      <el-table-column v-if="visibleColumns.includes('processingStatus')" label="处理状态" align="center" prop="processingStatus" sortable>
+      <el-table-column v-if="visibleColumns.includes('resultMessage')" :label="$t('maintenanceOrder.resultMessage')" prop="resultMessage" :show-overflow-tooltip="true" width="150" sortable />
+      <el-table-column v-if="visibleColumns.includes('processingStatus')" :label="$t('maintenanceOrder.processingStatus')" align="center" prop="processingStatus" sortable>
         <template slot-scope="scope">
           <dict-tag :options="dict.type.sys_maintenance_status" :value="scope.row.processingStatus"/>
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+      <el-table-column :label="$t('maintenanceOrder.actions')" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-dropdown>
             <el-button type="text" size="mini">
@@ -201,14 +203,14 @@
             </el-button>
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item @click.native="handleSubmit(scope.row)" v-if="scope.row.processingStatus === 'On Process'">
-                <i class="el-icon-upload"></i> 提交
+                <i class="el-icon-upload"></i> {{ $t('maintenanceOrder.submit') }}
               </el-dropdown-item>
               <el-dropdown-item @click.native="handleUpdate(scope.row)" v-else>
-                <i class="el-icon-edit"></i> 更新
+                <i class="el-icon-edit"></i> {{ $t('maintenanceOrder.update') }}
               </el-dropdown-item>
-              <el-dropdown-item @click.native="handleViewLogs(scope.row)">
-                <i class="el-icon-document"></i> 查看记录
-              </el-dropdown-item>
+              <!-- <el-dropdown-item @click.native="handleViewLogs(scope.row)">
+                <i class="el-icon-document"></i> {{ $t('maintenanceOrder.viewLogs') }}
+              </el-dropdown-item> -->
             </el-dropdown-menu>
           </el-dropdown>
         </template>
@@ -226,19 +228,19 @@
     <!-- 提交或更新维护工单对话框 -->
     <el-dialog :title="submitOrUpdateTitle" :visible.sync="submitOrUpdateOpen" :width="isMobile ? '100%' : '500px'" append-to-body>
       <el-form ref="submitOrUpdateForm" :model="submitOrUpdateForm" label-width="100px">
-        <el-form-item label="维修人员姓名" prop="facilityGuysName" v-if="submitOrUpdateTitle === '更新维护工单'">
-          <el-input v-model="submitOrUpdateForm.facilityGuysName" placeholder="维修人员姓名" disabled />
+        <el-form-item :label="$t('maintenanceOrder.facilityGuysName')" prop="facilityGuysName" v-if="submitOrUpdateTitle === $t('maintenanceOrder.update')">
+          <el-input v-model="submitOrUpdateForm.facilityGuysName" :placeholder="$t('maintenanceOrder.facilityGuysName')" disabled />
         </el-form-item>
-        <el-form-item label="维修人员电话" prop="facilityGuyMobile" v-if="submitOrUpdateTitle === '更新维护工单'">
-          <el-input v-model="submitOrUpdateForm.facilityGuyMobile" placeholder="维修人员电话" disabled />
+        <el-form-item :label="$t('maintenanceOrder.facilityGuyMobile')" prop="facilityGuyMobile" v-if="submitOrUpdateTitle === $t('maintenanceOrder.update')">
+          <el-input v-model="submitOrUpdateForm.facilityGuyMobile" :placeholder="$t('maintenanceOrder.facilityGuyMobile')" disabled />
         </el-form-item>
-        <el-form-item label="维修人员邮箱" prop="facilityGuysEmail" v-if="submitOrUpdateTitle === '更新维护工单'">
-          <el-input v-model="submitOrUpdateForm.facilityGuysEmail" placeholder="维修人员邮箱" disabled />
+        <el-form-item :label="$t('maintenanceOrder.facilityGuysEmail')" prop="facilityGuysEmail" v-if="submitOrUpdateTitle === $t('maintenanceOrder.update')">
+          <el-input v-model="submitOrUpdateForm.facilityGuysEmail" :placeholder="$t('maintenanceOrder.facilityGuysEmail')" disabled />
         </el-form-item>
-        <el-form-item label="结果信息" prop="resultMessage">
-          <el-input v-model="submitOrUpdateForm.resultMessage" placeholder="请输入结果信息" />
+        <el-form-item :label="$t('maintenanceOrder.resultMessage')" prop="resultMessage">
+          <el-input v-model="submitOrUpdateForm.resultMessage" :placeholder="$t('maintenanceOrder.enterResultMessage')" />
         </el-form-item>
-        <el-form-item label="处理图片" prop="resultImgPath">
+        <el-form-item :label="$t('maintenanceOrder.resultImgPath')" prop="resultImgPath">
           <el-upload
             class="upload-demo"
             action="#"
@@ -254,59 +256,59 @@
             <img width="100%" :src="previewImage" alt="" />
           </el-dialog>
         </el-form-item>
-        <el-form-item label="处理状态" prop="processingStatus">
-          <el-select v-model="submitOrUpdateForm.processingStatus" placeholder="请选择处理状态">
+        <el-form-item :label="$t('maintenanceOrder.processingStatus')" prop="processingStatus">
+          <el-select v-model="submitOrUpdateForm.processingStatus" :placeholder="$t('maintenanceOrder.selectProcessingStatus')">
             <el-option
               v-for="dict in dict.type.sys_maintenance_status"
               :key="dict.value"
               :label="dict.label"
               :value="dict.value"
-              v-if="submitOrUpdateTitle === '提交维护工单' ? (dict.value === 'Resolved' || dict.value === 'Can not Resolve') : true"
+              v-if="submitOrUpdateTitle === $t('maintenanceOrder.submit') ? (dict.value === 'Resolved' || dict.value === 'Can not Resolve') : true"
             />
           </el-select>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button type="primary" :disabled="!isFormChanged || !submitOrUpdateForm.processingStatus || (submitOrUpdateTitle === '提交维护工单' && submitOrUpdateForm.processingStatus === 'On Process')" @click="submitOrUpdateFormAction">确 定</el-button>
-        <el-button @click="cancelSubmitOrUpdate">取 消</el-button>
+        <el-button type="primary" :disabled="!isFormChanged || !submitOrUpdateForm.processingStatus || (submitOrUpdateTitle === $t('maintenanceOrder.submit') && submitOrUpdateForm.processingStatus === 'On Process')" @click="submitOrUpdateFormAction">{{ $t('maintenanceOrder.confirm') }}</el-button>
+        <el-button @click="cancelSubmitOrUpdate">{{ $t('maintenanceOrder.cancel') }}</el-button>
       </div>
     </el-dialog>
 
     <!-- 字段设置对话框 -->
-    <el-dialog title="字段设置" :visible.sync="showColumnSettings" :width="isMobile ? '100%' : '300px'">
+    <el-dialog :title="$t('maintenanceOrder.columnSettings')" :visible.sync="showColumnSettings" :width="isMobile ? '100%' : '300px'">
       <el-checkbox-group v-model="visibleColumns">
         <el-row>
-          <el-col :span="12"><el-checkbox label="issueId">工单编号</el-checkbox></el-col>
-          <el-col :span="12"><el-checkbox label="issuerName">发布者名称</el-checkbox></el-col>
-          <el-col :span="12"><el-checkbox label="issuePhoto">问题照片</el-checkbox></el-col>
-          <el-col :span="12"><el-checkbox label="issuerEmail">发布者邮箱</el-checkbox></el-col>
-          <el-col :span="12"><el-checkbox label="issueDetails">问题详情</el-checkbox></el-col>
-          <el-col :span="12"><el-checkbox label="classroom">教室</el-checkbox></el-col>
-          <el-col :span="12"><el-checkbox label="floor">楼层</el-checkbox></el-col>
-          <el-col :span="12"><el-checkbox label="maintenanceType">维修类型</el-checkbox></el-col>
-          <el-col :span="12"><el-checkbox label="urgencyLevel">紧急程度</el-checkbox></el-col>
-          <el-col :span="12"><el-checkbox label="issuerPhone">发布者电话</el-checkbox></el-col>
-          <el-col :span="12"><el-checkbox label="facilityGuyId">维修人员ID</el-checkbox></el-col>
-          <el-col :span="12"><el-checkbox label="date">日期</el-checkbox></el-col>
-          <el-col :span="12"><el-checkbox label="facilityGuysEmail">维修人员邮箱</el-checkbox></el-col>
-          <el-col :span="12"><el-checkbox label="facilityGuysName">维修人员姓名</el-checkbox></el-col>
-          <el-col :span="12"><el-checkbox label="facilityGuyMobile">维修人员电话</el-checkbox></el-col>
-          <el-col :span="12"><el-checkbox label="facilityGuySupervisor">主管邮箱</el-checkbox></el-col>
-          <el-col :span="12"><el-checkbox label="resultImgPath">处理图片</el-checkbox></el-col>
-          <el-col :span="12"><el-checkbox label="resultMessage">结果信息</el-checkbox></el-col>
-          <el-col :span="12"><el-checkbox label="processingStatus">处理状态</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="issueId">{{ $t('maintenanceOrder.issueId') }}</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="issuerName">{{ $t('maintenanceOrder.issuerName') }}</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="issuePhoto">{{ $t('maintenanceOrder.issuePhoto') }}</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="issuerEmail">{{ $t('maintenanceOrder.issuerEmail') }}</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="issueDetails">{{ $t('maintenanceOrder.issueDetails') }}</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="classroom">{{ $t('maintenanceOrder.classroom') }}</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="floor">{{ $t('maintenanceOrder.floor') }}</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="maintenanceType">{{ $t('maintenanceOrder.maintenanceType') }}</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="urgencyLevel">{{ $t('maintenanceOrder.urgencyLevel') }}</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="issuerPhone">{{ $t('maintenanceOrder.issuerPhone') }}</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="facilityGuyId">{{ $t('maintenanceOrder.facilityGuyId') }}</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="date">{{ $t('maintenanceOrder.date') }}</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="facilityGuysEmail">{{ $t('maintenanceOrder.facilityGuysEmail') }}</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="facilityGuysName">{{ $t('maintenanceOrder.facilityGuysName') }}</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="facilityGuyMobile">{{ $t('maintenanceOrder.facilityGuyMobile') }}</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="facilityGuySupervisor">{{ $t('maintenanceOrder.facilityGuySupervisor') }}</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="resultImgPath">{{ $t('maintenanceOrder.resultImgPath') }}</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="resultMessage">{{ $t('maintenanceOrder.resultMessage') }}</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="processingStatus">{{ $t('maintenanceOrder.processingStatus') }}</el-checkbox></el-col>
         </el-row>
       </el-checkbox-group>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="showColumnSettings = false">关闭</el-button>
+        <el-button @click="showColumnSettings = false">{{ $t('maintenanceOrder.close') }}</el-button>
       </div>
     </el-dialog>
 
     <!-- 图片查看对话框 -->
-    <el-dialog title="图片查看" :visible.sync="showImageDialog" :width="isMobile ? '100%' : '600px'">
-      <img :src="imageSrc" alt="图片" style="width: 100%;" />
+    <el-dialog :title="$t('maintenanceOrder.viewImage')" :visible.sync="showImageDialog" :width="isMobile ? '100%' : '600px'">
+      <img :src="imageSrc" :alt="$t('maintenanceOrder.image')" style="width: 100%;" />
       <div slot="footer" class="dialog-footer">
-        <el-button @click="showImageDialog = false">关闭</el-button>
+        <el-button @click="showImageDialog = false">{{ $t('maintenanceOrder.close') }}</el-button>
       </div>
     </el-dialog>
 
@@ -316,7 +318,7 @@
 </template>
 
 <script>
-import { listMyMaintenanceOrder, getMaintenanceOrder, updateMaintenanceOrder, uploadImage, exportMaintenanceOrder, listUserByDeptId, listMaintenanceOrderLogs, addMaintenanceOrderLog, getUserProfile } from "@/api/maintenanceOrder/my/maintenanceOrderMy";
+import { listMyMaintenanceOrder, getMaintenanceOrder, updateMaintenanceOrder, uploadImage, exportMaintenanceOrder, listUserByDeptId, listMaintenanceOrderLogs, addMaintenanceOrderLog, getUserProfile, sendCompletionEmail, sendIncompleteEmail } from "@/api/maintenanceOrder/my/maintenanceOrderMy";
 
 export default {
   name: "MyMaintenanceOrder",
@@ -480,7 +482,7 @@ export default {
         const fullUrl = `https://schoolmaintenancestorage.blob.core.windows.net/schoolblodfiles/image/${this.submitOrUpdateForm.resultImgPath}`;
         this.fileList.push({ name: this.submitOrUpdateForm.resultImgPath, url: fullUrl });
       }
-      this.submitOrUpdateTitle = row.processingStatus === 'On Process' ? '提交维护工单' : '更新维护工单';
+      this.submitOrUpdateTitle = row.processingStatus === 'On Process' ? this.$t('maintenanceOrder.submit') : this.$t('maintenanceOrder.update');
       this.submitOrUpdateOpen = true;
     },
     handleSubmit(row) {
@@ -491,7 +493,7 @@ export default {
         const fullUrl = `https://schoolmaintenancestorage.blob.core.windows.net/schoolblodfiles/image/${this.submitOrUpdateForm.resultImgPath}`;
         this.fileList.push({ name: this.submitOrUpdateForm.resultImgPath, url: fullUrl });
       }
-      this.submitOrUpdateTitle = '提交维护工单';
+      this.submitOrUpdateTitle = this.$t('maintenanceOrder.submit');
       this.submitOrUpdateOpen = true;
     },
     handleUpdate(row) {
@@ -502,32 +504,22 @@ export default {
         const fullUrl = `https://schoolmaintenancestorage.blob.core.windows.net/schoolblodfiles/image/${this.submitOrUpdateForm.resultImgPath}`;
         this.fileList.push({ name: this.submitOrUpdateForm.resultImgPath, url: fullUrl });
       }
-      this.submitOrUpdateTitle = '更新维护工单';
+      this.submitOrUpdateTitle = this.$t('maintenanceOrder.update');
       this.submitOrUpdateOpen = true;
     },
     /** 提交或更新表单操作 */
     submitOrUpdateFormAction() {
       if (this.fileList.some(file => file.status !== 'success')) {
-        this.$message.error('请等待图片上传完成');
+        this.$message.error(this.$t('maintenanceOrder.uploadError'));
         return;
       }
       if (this.fileList.length === 0) {
         this.submitOrUpdateForm.resultImgPath = '';
       } 
-      if (this.submitOrUpdateTitle === '提交维护工单') {
-        this.remindIssuer();
-        this.updateMaintenanceOrderData('提交');
+      if (this.submitOrUpdateTitle === this.$t('maintenanceOrder.submit')) {
+        this.updateMaintenanceOrderData(this.$t('maintenanceOrder.submit'));
       } else {
-        this.$confirm('是否提醒发布人？', '提示', {
-          confirmButtonText: '是',
-          cancelButtonText: '否',
-          type: 'warning'
-        }).then(() => {
-          this.remindIssuer();
-          this.updateMaintenanceOrderData('更新');
-        }).catch(() => {
-          this.updateMaintenanceOrderData('更新');
-        });
+        this.updateMaintenanceOrderData(this.$t('maintenanceOrder.update'));
       }
     },
     updateMaintenanceOrderData(actionType) {
@@ -537,14 +529,19 @@ export default {
             this.submitOrUpdateForm.resultImgPath = '';
           } 
           updateMaintenanceOrder(this.submitOrUpdateForm).then(response => {
-            this.$modal.msgSuccess("操作成功");
+            this.$modal.msgSuccess(this.$t('maintenanceOrder.actionSuccess'));
             this.submitOrUpdateOpen = false;
             this.getList();
-            if (actionType === '提交') {
+            if (actionType === this.$t('maintenanceOrder.submit')) {
               const statusLabel = this.dict.type.sys_maintenance_status.find(item => item.value === this.submitOrUpdateForm.processingStatus)?.label || this.submitOrUpdateForm.processingStatus;
-              this.addLog(this.submitOrUpdateForm.issueId, actionType, `工单提交为 ${statusLabel}`);
+              // this.addLog(this.submitOrUpdateForm.issueId, actionType, `工单提交为 ${statusLabel}`);
+              if (this.submitOrUpdateForm.processingStatus === 'Resolved') {
+                sendCompletionEmail(this.submitOrUpdateForm.issueId);
+              } else if (this.submitOrUpdateForm.processingStatus === 'Can not Resolve') {
+                sendIncompleteEmail(this.submitOrUpdateForm.issueId);
+              }
             } else {
-              this.addDetailedLog(this.submitOrUpdateForm.issueId, actionType, this.originalSubmitOrUpdateForm, this.submitOrUpdateForm);
+              // this.addDetailedLog(this.submitOrUpdateForm.issueId, actionType, this.originalSubmitOrUpdateForm, this.submitOrUpdateForm);
             }
           });
         }
@@ -625,7 +622,7 @@ export default {
         this.submitOrUpdateForm.resultImgPath = relativePath;
         this.fileList.push({ name: file.name, url: fullUrl });
       }).catch(error => {
-        this.$message.error('上传失败');
+        this.$message.error(this.$t('maintenanceOrder.uploadFail'));
       });
     },
     handlePreview(file) {

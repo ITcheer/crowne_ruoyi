@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.SysInventoryRecordsMapper">
+
+    <resultMap type="com.ruoyi.system.domain.SysInventoryRecords" id="SysInventoryRecordsResult">
+        <id property="id" column="Id" />
+        <result property="goodsId" column="Goods_Id" />
+        <result property="quantity" column="Quantity" />
+        <result property="recordType" column="Record_Type" />
+        <result property="operator" column="Operator" />
+        <result property="operationTime" column="Operation_Time" />
+        <result property="details" column="Details" />
+    </resultMap>
+
+    <sql id="selectInventoryRecordsVo">
+        select Id, Goods_Id, Quantity, Record_Type, Operator, Operation_Time, Details
+        from sys_inventory_records
+    </sql>
+
+    <!-- 查询条件 -->
+    <sql id="sqlwhereSearch">
+        <where>
+            <if test="id != null">
+                and Id = #{id}
+            </if>
+            <if test="goodsId != null and goodsId != ''">
+                and Goods_Id like concat('%', #{goodsId}, '%')
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectInventoryRecords" parameterType="com.ruoyi.system.domain.SysInventoryRecords" resultMap="SysInventoryRecordsResult">
+        <include refid="selectInventoryRecordsVo"/>
+        <include refid="sqlwhereSearch"/>
+        order by Operation_Time desc
+    </select>
+
+    <select id="selectInventoryRecordsList" parameterType="com.ruoyi.system.domain.SysInventoryRecords" resultMap="SysInventoryRecordsResult">
+        <include refid="selectInventoryRecordsVo"/>
+        <where>
+            <if test="goodsId != null and goodsId != ''">
+                AND Goods_Id like concat('%', #{goodsId}, '%')
+            </if>
+            <if test="recordType != null and recordType != ''">
+                AND Record_Type like concat('%', #{recordType}, '%')
+            </if>
+        </where>
+        order by Operation_Time desc
+    </select>
+
+    <select id="selectInventoryRecordsById" parameterType="String" resultMap="SysInventoryRecordsResult">
+        <include refid="selectInventoryRecordsVo"/>
+        where Id = #{id}
+        order by Operation_Time desc
+    </select>
+
+    <select id="selectInventoryRecordsListByBatchId" parameterType="String" resultMap="SysInventoryRecordsResult">
+        select Id, Goods_Id, Quantity, Record_Type, Operator, Operation_Time, Details
+        from sys_inventory_records
+        where Goods_Id = #{batchId}
+        order by Operation_Time desc
+    </select>
+
+    <insert id="insertInventoryRecords" parameterType="com.ruoyi.system.domain.SysInventoryRecords">
+        insert into sys_inventory_records (
+            Id, Goods_Id, Quantity, Record_Type, Operator, Operation_Time, Details
+        ) values (
+            #{id}, #{goodsId}, #{quantity}, #{recordType}, #{operator}, #{operationTime}, #{details}
+        )
+    </insert>
+
+    <update id="updateInventoryRecords" parameterType="com.ruoyi.system.domain.SysInventoryRecords">
+        update sys_inventory_records 
+        <set>
+            <if test="goodsId != null and goodsId != ''">Goods_Id = #{goodsId},</if>
+            <if test="quantity != null">Quantity = #{quantity},</if>
+            <if test="recordType != null and recordType != ''">Record_Type = #{recordType},</if>
+            <if test="operator != null and operator != ''">Operator = #{operator},</if>
+            <if test="operationTime != null">Operation_Time = #{operationTime},</if>
+            <if test="details != null and details != ''">Details = #{details},</if>
+        </set>
+        where Id = #{id}
+    </update>
+
+    <delete id="deleteInventoryRecordsById" parameterType="String">
+        delete from sys_inventory_records where Id = #{id}
+    </delete>
+
+    <delete id="deleteInventoryRecordsByIds" parameterType="String">
+        delete from sys_inventory_records where Id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

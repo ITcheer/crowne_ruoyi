@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.SysCleaningOrderMapper">
+    
+    <resultMap type="com.ruoyi.system.domain.SysCleaningOrder" id="SysCleaningOrderResult">
+        <id property="issueId" column="ISSUE_Id" />
+        <result property="issuerName" column="Issuer_Name" />
+        <result property="issuePhoto" column="Issue_photo" />
+        <result property="issuerEmail" column="Isssuer_Email" />
+        <result property="issueDetails" column="Issue_details" />
+        <result property="classroom" column="Classroom" />
+        <result property="floor" column="Floor" />
+        <result property="maintenanceType" column="Maintenance_Type" />
+        <result property="urgencyLevel" column="Urgency_Level" />
+        <result property="issuerPhone" column="Issuer_Phone"/>
+        <result property="facilityGuyId" column="facility_guy_id" />
+        <result property="date" column="date" jdbcType="TIMESTAMP"/>
+        <result property="facilityGuysEmail" column="facility_guys_email" />
+        <result property="facilityGuysName" column="facility_guys_name" />
+        <result property="facilityGuyMobile" column="facility_guy_mobile" />
+        <result property="facilityGuySupervisor" column="facility_guy_superviosr" />
+        <result property="resultImgPath" column="result_img_path" />
+        <result property="resultMessage" column="result_message" />
+        <result property="processingStatus" column="processing_status" />
+        <result property="powerAppsId" column="__PowerAppsId__" />
+    </resultMap>
+    
+    <sql id="selectCleaningOrderVo">
+        select ISSUE_Id, Issuer_Name, Issue_photo, Isssuer_Email, Issue_details, Classroom, Floor, Maintenance_Type, Urgency_Level, Issuer_Phone, facility_guy_id, date_format(date, '%Y-%m-%d %H:%i:%s') as date, facility_guys_email, facility_guys_name, facility_guy_mobile, facility_guy_superviosr, result_img_path, result_message, processing_status, __PowerAppsId__
+        from sys_cleaning_order
+    </sql>
+    
+    <!-- 查询条件 -->
+    <sql id="sqlwhereSearch">
+        <where>
+            <if test="issueId != null">
+                and ISSUE_Id = #{issueId}
+            </if>
+            <if test="issuerName != null and issuerName != ''">
+                and Issuer_Name = #{issuerName}
+            </if>
+        </where>
+    </sql>
+    
+    <select id="selectCleaningOrder" parameterType="com.ruoyi.system.domain.SysCleaningOrder" resultMap="SysCleaningOrderResult">
+        <include refid="selectCleaningOrderVo"/>
+        <include refid="sqlwhereSearch"/>
+        order by date desc
+    </select>
+    
+    <select id="selectCleaningOrderList" parameterType="com.ruoyi.system.domain.SysCleaningOrder" resultMap="SysCleaningOrderResult">
+        <include refid="selectCleaningOrderVo"/>
+        <where>
+            <if test="issuerName != null and issuerName != ''">
+                AND Issuer_Name like concat('%', #{issuerName}, '%')
+            </if>
+            <if test="issueDetails != null and issueDetails != ''">
+                AND Issue_details like concat('%', #{issueDetails}, '%')
+            </if>
+            <if test="maintenanceType != null and maintenanceType != ''">
+                AND Maintenance_Type = #{maintenanceType}
+            </if>
+            <if test="urgencyLevel != null and urgencyLevel != ''">
+                AND Urgency_Level = #{urgencyLevel}
+            </if>
+            <if test="processingStatus != null and processingStatus != ''">
+                AND processing_status = #{processingStatus}
+            </if>
+            <if test="issuerEmail != null and issuerEmail != ''">
+                AND Isssuer_Email like concat('%', #{issuerEmail}, '%')
+            </if>
+            <if test="classroom != null and classroom != ''">
+                AND Classroom like concat('%', #{classroom}, '%')
+            </if>
+            <if test="floor != null and floor != ''">
+                AND Floor like concat('%', #{floor}, '%')
+            </if>
+            <if test="issuerPhone != null and issuerPhone != ''">
+                AND Issuer_Phone like concat('%', #{issuerPhone}, '%')
+            </if>
+            <if test="facilityGuyId != null and facilityGuyId != ''">
+                AND facility_guy_id like concat('%', #{facilityGuyId}, '%')
+            </if>
+            <if test="facilityGuysEmail != null and facilityGuysEmail != ''">
+                AND facility_guys_email like concat('%', #{facilityGuysEmail}, '%')
+            </if>
+            <if test="facilityGuysName != null and facilityGuysName != ''">
+                AND facility_guys_name like concat('%', #{facilityGuysName}, '%')
+            </if>
+            <if test="facilityGuyMobile != null and facilityGuyMobile != ''">
+                AND facility_guy_mobile like concat('%', #{facilityGuyMobile}, '%')
+            </if>
+            <if test="facilityGuySupervisor != null and facilityGuySupervisor != ''">
+                AND facility_guy_superviosr like concat('%', #{facilityGuySupervisor}, '%')
+            </if>
+            <if test="resultMessage != null and resultMessage != ''">
+                AND result_message like concat('%', #{resultMessage}, '%')
+            </if>
+            <if test="params.beginTime != null and params.beginTime != ''">
+                and date_format(date,'%Y%m%d') &gt;= date_format(#{params.beginTime},'%Y%m%d')
+            </if>
+            <if test="params.endTime != null and params.endTime != ''">
+                and date_format(date,'%Y%m%d') &lt;= date_format(#{params.endTime},'%Y%m%d')
+            </if>
+        </where>
+        order by date desc
+    </select>
+    
+    <select id="selectCleaningOrderById" parameterType="String" resultMap="SysCleaningOrderResult">
+        <include refid="selectCleaningOrderVo"/>
+        where ISSUE_Id = #{issueId}
+        order by date desc
+    </select>
+    
+    <insert id="insertCleaningOrder" parameterType="com.ruoyi.system.domain.SysCleaningOrder">
+        insert into sys_cleaning_order (
+            ISSUE_Id, Issuer_Name, Issue_photo, Isssuer_Email, Issue_details, Classroom, Floor, Maintenance_Type, Urgency_Level, Issuer_Phone, facility_guy_id, date, facility_guys_email, facility_guys_name, facility_guy_mobile, facility_guy_superviosr, result_img_path, result_message, processing_status, __PowerAppsId__
+        ) values (
+            #{issueId}, #{issuerName}, #{issuePhoto}, #{issuerEmail}, #{issueDetails}, #{classroom}, #{floor}, #{maintenanceType}, #{urgencyLevel}, #{issuerPhone}, #{facilityGuyId}, #{date, jdbcType=TIMESTAMP}, #{facilityGuysEmail}, #{facilityGuysName}, #{facilityGuyMobile}, #{facilityGuySupervisor}, #{resultImgPath}, #{resultMessage}, #{processingStatus}, #{powerAppsId}
+        )
+    </insert>
+    
+    <update id="updateCleaningOrder" parameterType="com.ruoyi.system.domain.SysCleaningOrder">
+        update sys_cleaning_order 
+        <set>
+            <if test="issuerName != null and issuerName != ''">Issuer_Name = #{issuerName},</if>
+            <if test="issuePhoto != null">Issue_photo = #{issuePhoto},</if>
+            <if test="issuerEmail != null and issuerEmail != ''">Isssuer_Email = #{issuerEmail},</if>
+            <if test="issueDetails != null and issueDetails != ''">Issue_details = #{issueDetails},</if>
+            <if test="classroom != null and classroom != ''">Classroom = #{classroom},</if>
+            <if test="floor != null and floor != ''">Floor = #{floor},</if>
+            <if test="maintenanceType != null and maintenanceType != ''">Maintenance_Type = #{maintenanceType},</if>
+            <if test="urgencyLevel != null and urgencyLevel != ''">Urgency_Level = #{urgencyLevel},</if>
+            <if test="issuerPhone != null and issuerPhone != ''">Issuer_Phone = #{issuerPhone},</if>
+            <if test="facilityGuyId != null and facilityGuyId != ''">facility_guy_id = #{facilityGuyId},</if>
+            <if test="date != null">date = #{date, jdbcType=TIMESTAMP},</if>
+            <if test="facilityGuysEmail != null and facilityGuysEmail != ''">facility_guys_email = #{facilityGuysEmail},</if>
+            <if test="facilityGuysName != null and facilityGuysName != ''">facility_guys_name = #{facilityGuysName},</if>
+            <if test="facilityGuyMobile != null and facilityGuyMobile != ''">facility_guy_mobile = #{facilityGuyMobile},</if>
+            <if test="facilityGuySupervisor != null and facilityGuySupervisor != ''">facility_guy_superviosr = #{facilityGuySupervisor},</if>
+            <if test="resultImgPath != null">result_img_path = #{resultImgPath},</if>
+            <if test="resultMessage != null and resultMessage != ''">result_message = #{resultMessage},</if>
+            <if test="processingStatus != null and processingStatus != ''">processing_status = #{processingStatus},</if>
+            <if test="powerAppsId != null and powerAppsId != ''">__PowerAppsId__ = #{powerAppsId},</if>
+        </set>
+        where ISSUE_Id = #{issueId}
+    </update>
+    
+    <delete id="deleteCleaningOrderById" parameterType="String">
+        delete from sys_cleaning_order where ISSUE_Id = #{issueId}
+    </delete>
+    
+    <delete id="deleteCleaningOrderByIds" parameterType="String">
+        delete from sys_cleaning_order where ISSUE_Id in 
+        <foreach item="issueId" collection="array" open="(" separator="," close=")">
+            #{issueId}
+        </foreach>
+    </delete>
+    
+</mapper>

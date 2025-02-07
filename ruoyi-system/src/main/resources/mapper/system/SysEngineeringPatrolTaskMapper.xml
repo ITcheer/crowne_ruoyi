@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.SysEngineeringPatrolTaskMapper">
+    <resultMap id="SysEngineeringPatrolTaskResult" type="com.ruoyi.system.domain.SysEngineeringPatrolTask">
+        <id property="id" column="ID" />
+        <result property="taskName" column="Task_Name" />
+        <result property="taskContent" column="Task_Content" />
+        <result property="taskTimePeriod" column="Task_Time_Period" />
+        <result property="taskCycle" column="Task_Cycle" />
+        <result property="taskStartDate" column="Task_Start_Date" />
+        <result property="taskEndDate" column="Task_End_Date" />
+        <result property="updateTime" column="Update_Time" />
+    </resultMap>
+
+    <sql id="selectPatrolTaskVo">
+        select ID, Task_Name, Task_Content, Task_Time_Period, Task_Cycle, Task_Start_Date, Task_End_Date, Update_Time
+        from sys_engineering_patrol_task
+    </sql>
+
+    <select id="selectPatrolTaskById" parameterType="String" resultMap="SysEngineeringPatrolTaskResult">
+        select ID, Task_Name, Task_Content, Task_Time_Period, Task_Cycle, Task_Start_Date, Task_End_Date, Update_Time
+        from sys_engineering_patrol_task
+        where ID = #{id}
+    </select>
+
+    <select id="selectPatrolTaskList" parameterType="com.ruoyi.system.domain.SysEngineeringPatrolTask" resultMap="SysEngineeringPatrolTaskResult">
+        <include refid="selectPatrolTaskVo"/>
+        <where>
+            <if test="taskName != null">
+                and Task_Name like concat('%', #{taskName}, '%')
+            </if>
+            <if test="taskContent != null">
+                and Task_Content like concat('%', #{taskContent}, '%')
+            </if>
+        </where>
+        order by Update_Time desc
+    </select>
+
+    <insert id="insertPatrolTask" parameterType="com.ruoyi.system.domain.SysEngineeringPatrolTask">
+        insert into sys_engineering_patrol_task (
+            ID, Task_Name, Task_Content, Task_Time_Period, Task_Cycle, Task_Start_Date, Task_End_Date, Update_Time
+        ) values (
+            #{id}, #{taskName}, #{taskContent}, #{taskTimePeriod}, #{taskCycle}, #{taskStartDate}, #{taskEndDate}, #{updateTime}
+        )
+    </insert>
+
+    <update id="updatePatrolTask" parameterType="com.ruoyi.system.domain.SysEngineeringPatrolTask">
+        update sys_engineering_patrol_task
+        set Task_Name = #{taskName},
+            Task_Content = #{taskContent},
+            Task_Time_Period = #{taskTimePeriod},
+            Task_Cycle = #{taskCycle},
+            Task_Start_Date = #{taskStartDate},
+            Task_End_Date = #{taskEndDate},
+            Update_Time = #{updateTime}
+        where ID = #{id}
+    </update>
+
+    <delete id="deletePatrolTaskById" parameterType="String">
+        delete from sys_engineering_patrol_task where ID = #{id}
+    </delete>
+
+    <delete id="deletePatrolTaskByIds" parameterType="String">
+        delete from sys_engineering_patrol_task where ID in
+        <foreach collection="array" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

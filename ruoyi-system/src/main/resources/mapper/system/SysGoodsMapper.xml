@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.SysGoodsMapper">
+
+    <resultMap type="com.ruoyi.system.domain.SysGoods" id="SysGoodsResult">
+        <id property="batchId" column="Batch_Id" />
+        <result property="name" column="Name" />
+        <result property="quantity" column="Quantity" />
+        <result property="unitPrice" column="Unit_Price" />
+        <result property="productionDate" column="Production_Date" />
+        <result property="shelfLife" column="Shelf_Life" />
+        <result property="photo" column="Photo" />
+        <result property="description" column="Description" />
+    </resultMap>
+
+    <sql id="selectGoodsVo">
+        select Batch_Id, Name, Quantity, Unit_Price, Production_Date, Shelf_Life, Photo, Description
+        from sys_goods
+    </sql>
+
+    <!-- 查询条件 -->
+    <sql id="sqlwhereSearch">
+        <where>
+            <if test="batchId != null">
+                and Batch_Id = #{batchId}
+            </if>
+            <if test="name != null and name != ''">
+                and Name like concat('%', #{name}, '%')
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectGoods" parameterType="com.ruoyi.system.domain.SysGoods" resultMap="SysGoodsResult">
+        <include refid="selectGoodsVo"/>
+        <include refid="sqlwhereSearch"/>
+        order by Production_Date desc
+    </select>
+
+    <select id="selectGoodsList" parameterType="com.ruoyi.system.domain.SysGoods" resultMap="SysGoodsResult">
+        <include refid="selectGoodsVo"/>
+        <where>
+            <if test="name != null and name != ''">
+                AND Name like concat('%', #{name}, '%')
+            </if>
+            <if test="description != null and description != ''">
+                AND Description like concat('%', #{description}, '%')
+            </if>
+        </where>
+        order by Production_Date desc
+    </select>
+
+    <select id="selectGoodsById" parameterType="String" resultMap="SysGoodsResult">
+        <include refid="selectGoodsVo"/>
+        where Batch_Id = #{batchId}
+        order by Production_Date desc
+    </select>
+
+    <insert id="insertGoods" parameterType="com.ruoyi.system.domain.SysGoods">
+        insert into sys_goods (
+            Batch_Id, Name, Quantity, Unit_Price, Production_Date, Shelf_Life, Photo, Description
+        ) values (
+            #{batchId}, #{name}, #{quantity}, #{unitPrice}, #{productionDate}, #{shelfLife}, #{photo}, #{description}
+        )
+    </insert>
+
+    <update id="updateGoods" parameterType="com.ruoyi.system.domain.SysGoods">
+        update sys_goods 
+        <set>
+            <if test="name != null and name != ''">Name = #{name},</if>
+            <if test="quantity != null">Quantity = #{quantity},</if>
+            <if test="unitPrice != null">Unit_Price = #{unitPrice},</if>
+            <if test="productionDate != null">Production_Date = #{productionDate},</if>
+            <if test="shelfLife != null">Shelf_Life = #{shelfLife},</if>
+            <if test="photo != null">Photo = #{photo},</if>
+            <if test="description != null and description != ''">Description = #{description},</if>
+        </set>
+        where Batch_Id = #{batchId}
+    </update>
+
+    <delete id="deleteGoodsById" parameterType="String">
+        delete from sys_goods where Batch_Id = #{batchId}
+    </delete>
+
+    <delete id="deleteGoodsByIds" parameterType="String">
+        delete from sys_goods where Batch_Id in 
+        <foreach item="batchId" collection="array" open="(" separator="," close=")">
+            #{batchId}
+        </foreach>
+    </delete>
+
+</mapper>

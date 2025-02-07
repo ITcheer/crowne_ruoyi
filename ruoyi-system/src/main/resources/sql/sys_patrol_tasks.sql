@@ -31,6 +31,8 @@ CREATE TABLE sys_patrol_task_participant (
     FOREIGN KEY (Task_ID) REFERENCES sys_patrol_task(ID)
 );
 
+
+
 INSERT INTO sys_patrol_location (ID, Location_Name, Location_Description) VALUES ('1', '东门', '东门的描述');
 INSERT INTO sys_patrol_location (ID, Location_Name, Location_Description) VALUES ('2', '西门', '西门的描述');
 INSERT INTO sys_patrol_location (ID, Location_Name, Location_Description) VALUES ('3', '南门', '南门的描述');
@@ -50,3 +52,21 @@ INSERT INTO sys_patrol_task_participant (Task_ID, Participant_ID) VALUES ('1', '
 INSERT INTO sys_patrol_task_participant (Task_ID, Participant_ID) VALUES ('1', '2');
 INSERT INTO sys_patrol_task_participant (Task_ID, Participant_ID) VALUES ('2', '3');
 INSERT INTO sys_patrol_task_participant (Task_ID, Participant_ID) VALUES ('2', '4');
+
+CREATE TABLE sys_patrol_task_record (
+    ID VARCHAR(64) PRIMARY KEY,
+    Task_ID VARCHAR(64) NOT NULL,
+    Participant_ID VARCHAR(64) NOT NULL,
+    Check_In_Info VARCHAR(256) NOT NULL,
+    Check_In_Image VARCHAR(256) NOT NULL,
+    Check_In_Time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO sys_patrol_task_record (ID, Task_ID, Participant_ID, Check_In_Info, Check_In_Image) 
+VALUES ('1', '1', '1', '东门巡逻完成', 'image1.jpg');
+INSERT INTO sys_patrol_task_record (ID, Task_ID, Participant_ID, Check_In_Info, Check_In_Image) 
+VALUES ('2', '1', '2', '西门巡逻完成', 'image2.jpg');
+INSERT INTO sys_patrol_task_record (ID, Task_ID, Participant_ID, Check_In_Info, Check_In_Image) 
+VALUES ('3', '2', '3', '南门巡逻完成', 'image3.jpg');
+INSERT INTO sys_patrol_task_record (ID, Task_ID, Participant_ID, Check_In_Info, Check_In_Image) 
+VALUES ('4', '2', '4', '北门巡逻完成', 'image4.jpg');

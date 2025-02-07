@@ -13,7 +13,7 @@
         @click.middle.native="!isAffix(tag)?closeSelectedTag(tag):''"
         @contextmenu.prevent.native="openMenu(tag,$event)"
       >
-        {{ tag.title }}
+      {{menusTitle( tag.title )}}
         <span v-if="!isAffix(tag)" class="el-icon-close" @click.prevent.stop="closeSelectedTag(tag)" />
       </router-link>
     </scroll-pane>
@@ -72,6 +72,12 @@ export default {
     this.addTags()
   },
   methods: {
+    menusTitle(item) {
+      if (this.$te('menus.' + item)) {
+        return this.$t('menus.' + item)
+      }
+      return item
+    },
     isActive(route) {
       return route.path === this.$route.path
     },

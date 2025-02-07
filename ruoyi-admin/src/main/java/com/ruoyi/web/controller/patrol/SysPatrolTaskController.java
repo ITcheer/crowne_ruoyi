@@ -25,6 +25,8 @@ import com.ruoyi.common.utils.file.AzureBlobUploadUtils;
 import com.ruoyi.system.service.ISysUserService;
 import com.ruoyi.system.service.ISysPatrolLocationService;
 import com.ruoyi.common.core.domain.entity.SysUser;
+import com.ruoyi.system.service.ISysPatrolTaskRecordService;
+import com.ruoyi.system.domain.SysPatrolTaskRecord;
 
 /**
  * 秩序巡逻任务 控制器
@@ -49,6 +51,9 @@ public class SysPatrolTaskController extends BaseController
 
     @Autowired
     private ISysPatrolLocationService locationService;
+
+    @Autowired
+    private ISysPatrolTaskRecordService patrolTaskRecordService;
 
     /**
      * 获取巡逻任务列表
@@ -279,5 +284,25 @@ public class SysPatrolTaskController extends BaseController
     public AjaxResult listParticipants() {
         List<SysUser> users = userService.selectUserList(new SysUser());
         return AjaxResult.success(users);
+    }
+
+    /**
+     * 获取巡逻任务打卡记录
+     */
+    @PreAuthorize("@ss.hasPermi('patrol:task:query')")
+    @GetMapping("/{taskId}/records")
+    public AjaxResult listRecords(@PathVariable String taskId) {
+        List<SysPatrolTaskRecord> records = patrolTaskRecordService.selectPatrolTaskRecordListByTaskId(taskId);
+        for (SysPatrolTaskRecord record : records) {
+            SysUser userDetails = userService.selectUserById(Long.parseLong(record.getParticipantId()));
+            if (userDetails != null) {
+                record.setParticipantName(userDetails.getUserName());
+            }
+            SysPatrolLocation locationDetails = locationService.selectPatrolLocationById(record.getCheckInLocationId());
+            if (locationDetails != null) {
+                record.setCheckInLocationName(locationDetails.getLocationName());
+            }
+        }
+        return AjaxResult.success(records);
     }
 }

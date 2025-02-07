@@ -35,6 +35,7 @@ import com.ruoyi.system.service.ISysMaintenanceOrderLogService;
 import java.util.Comparator;
 import java.sql.Timestamp;
 import java.util.UUID;
+import com.ruoyi.common.utils.AzureEmailUtils;
 
 /**
  * 我的维修工单 控制器
@@ -67,7 +68,7 @@ public class SysMaintenanceOrderMyController extends BaseController
         Long userId = currentUser.getUserId();
         String roleName = currentUser.getRoles().get(0).getRoleName();
 
-        if ("超级管理员".equals(roleName)) {
+        if ("超级管理员".equals(roleName)||"GUIS管理员".equals(roleName)) {
             // 超级管理员展示全部数据
             List<SysMaintenanceOrder> list = maintenanceOrderService.selectMaintenanceOrderList(order);
             return getDataTable(list);
@@ -130,7 +131,8 @@ public class SysMaintenanceOrderMyController extends BaseController
     @PutMapping
     public AjaxResult edit(@Validated @RequestBody SysMaintenanceOrder order)
     {
-        return toAjax(maintenanceOrderService.updateMaintenanceOrder(order));
+        int result = maintenanceOrderService.updateMaintenanceOrder(order);
+        return toAjax(result);
     }
 
     /**
@@ -161,6 +163,82 @@ public class SysMaintenanceOrderMyController extends BaseController
         } catch (IOException e) {
             return AjaxResult.error("上传失败: " + e.getMessage());
         }
+    }
+
+    /**
+     * 发送维修工单完成邮件
+     */
+    @Log(title = "维修工单管理", businessType = BusinessType.OTHER)
+    @PreAuthorize("@ss.hasPermi('maintenanceOrder:my:sendCompletionEmail')")
+    @PostMapping("/sendCompletionEmail/{issueId}")
+    public AjaxResult sendCompletionEmail(@PathVariable String issueId) {
+        SysMaintenanceOrder order = maintenanceOrderService.selectMaintenanceOrderById(issueId);
+        if (order == null) {
+            return error("工单不存在");
+        }
+
+        String recipientEmail = order.getIssuerEmail();
+        String subject = "您的维修工单已完成";
+        // String workOrderUrl = "https://schoolmaintain-webapp.azurewebsites.net/query/cn/" + order.getIssueId();
+        
+        String workOrderUrl = "http://127.0.0.1:5000/query/cn/" + order.getIssueId();
+
+        AzureEmailUtils.sendHtmlEmail(
+            recipientEmail,
+            subject,
+            AzureEmailUtils.EmailTemplate.ORDER_COMPLETED_NOTIFICATION,
+            order.getIssuerName(),
+            order.getIssuerEmail(),
+            order.getIssuerPhone(),
+            order.getClassroom(),
+            order.getFloor(),
+            order.getMaintenanceType(),
+            order.getUrgencyLevel(),
+            order.getIssueDetails(),
+            order.getFacilityGuysName(),
+            order.getFacilityGuysEmail(),
+            order.getFacilityGuyMobile(),
+            workOrderUrl
+        );
+
+        return success("邮件发送成功");
+    }
+
+    /**
+     * 发送维修工单未完成邮件
+     */
+    @Log(title = "维修工单管理", businessType = BusinessType.OTHER)
+    @PreAuthorize("@ss.hasPermi('maintenanceOrder:my:sendIncompleteEmail')")
+    @PostMapping("/sendIncompleteEmail/{issueId}")
+    public AjaxResult sendIncompleteEmail(@PathVariable String issueId) {
+        SysMaintenanceOrder order = maintenanceOrderService.selectMaintenanceOrderById(issueId);
+        if (order == null) {
+            return error("工单不存在");
+        }
+
+        String recipientEmail = order.getIssuerEmail();
+        String subject = "您的维修工单未完成";
+        String workOrderUrl = "http://127.0.0.1:5000/query/cn/" + order.getIssueId();
+
+        AzureEmailUtils.sendHtmlEmail(
+            recipientEmail,
+            subject,
+            AzureEmailUtils.EmailTemplate.ORDER_INCOMPLETE_NOTIFICATION,
+            order.getIssuerName(),
+            order.getIssuerEmail(),
+            order.getIssuerPhone(),
+            order.getClassroom(),
+            order.getFloor(),
+            order.getMaintenanceType(),
+            order.getUrgencyLevel(),
+            order.getIssueDetails(),
+            order.getFacilityGuysName(),
+            order.getFacilityGuysEmail(),
+            order.getFacilityGuyMobile(),
+            workOrderUrl
+        );
+
+        return success("邮件发送成功");
     }
 
     /**

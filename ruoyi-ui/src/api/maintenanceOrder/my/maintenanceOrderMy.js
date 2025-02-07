@@ -103,3 +103,19 @@ export function addMaintenanceOrderLog(data) {
     data: data
   });
 }
+
+// 发送工单完成邮件
+export function sendCompletionEmail(issueId) {
+  return request({
+    url: '/maintenanceOrder/my/sendCompletionEmail/' + issueId,
+    method: 'post'
+  })
+}
+
+// 发送工单未完成邮件
+export function sendIncompleteEmail(issueId) {
+  return request({
+    url: '/maintenanceOrder/my/sendIncompleteEmail/' + issueId,
+    method: 'post'
+  })
+}

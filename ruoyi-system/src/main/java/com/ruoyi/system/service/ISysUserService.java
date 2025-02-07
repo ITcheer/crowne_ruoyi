@@ -211,4 +211,12 @@ public interface ISysUserService
      * @return 用户信息集合
      */
     public List<SysUser> selectUserListByDeptId(Long deptId);
+
+    /**
+     * 根据角色ID查询用户列表
+     * 
+     * @param roleId 角色ID
+     * @return 用户信息集合
+     */
+    public List<SysUser> selectUserListByRoleId(Long roleId);
 }

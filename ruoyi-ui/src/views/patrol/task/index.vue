@@ -1,27 +1,27 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch">
-      <el-form-item label="任务编号" prop="id">
+      <el-form-item :label="$t('patrolTask.taskId')" prop="id">
         <el-input
           v-model="queryParams.id"
-          placeholder="请输入任务编号"
+          :placeholder="$t('patrolTask.enterTaskId')"
           clearable
           style="width: 240px"
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="任务名称" prop="taskName">
+      <el-form-item :label="$t('patrolTask.taskName')" prop="taskName">
         <el-input
           v-model="queryParams.taskName"
-          placeholder="请输入任务名称"
+          :placeholder="$t('patrolTask.enterTaskName')"
           clearable
           style="width: 240px"
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
-        <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+        <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">{{ $t('patrolTask.search') }}</el-button>
+        <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">{{ $t('patrolTask.reset') }}</el-button>
       </el-form-item>
     </el-form>
 
@@ -34,7 +34,7 @@
           size="mini"
           @click="handleAdd"
           v-hasPermi="['patrol:task:add']"
-        >新增</el-button>
+        >{{ $t('patrolTask.add') }}</el-button>
       </el-col>
       <el-col v-if="!isMobile" :span="1.5">
         <el-button
@@ -45,7 +45,7 @@
           :disabled="single"
           @click="handleUpdate"
           v-hasPermi="['patrol:task:edit']"
-        >修改</el-button>
+        >{{ $t('patrolTask.edit') }}</el-button>
       </el-col>
       <el-col v-if="!isMobile" :span="1.5">
         <el-button
@@ -56,7 +56,7 @@
           :disabled="multiple"
           @click="handleDelete"
           v-hasPermi="['patrol:task:remove']"
-        >删除</el-button>
+        >{{ $t('patrolTask.delete') }}</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
@@ -66,7 +66,7 @@
           size="mini"
           @click="handleExport"
           v-hasPermi="['patrol:task:export']"
-        >导出</el-button>
+        >{{ $t('patrolTask.export') }}</el-button>
       </el-col>
       <el-col v-if="!isMobile" :span="1.5">
         <el-button
@@ -75,44 +75,77 @@
           icon="el-icon-setting"
           size="mini"
           @click="showColumnSettings = true"
-        >字段设置</el-button>
+        >{{ $t('patrolTask.columnSettings') }}</el-button>
       </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="patrolTaskList" @selection-change="handleSelectionChange" @sort-change="handleSortChange">
+    <el-row v-if="isMobile" :gutter="10">
+      <el-col :xs="24" :sm="12" :md="8" v-for="item in patrolTaskList" :key="item.id">
+        <el-card class="box-card" shadow="hover">
+          <div class="card-content">
+            <p><strong>{{ $t('patrolTask.taskId') }}:</strong> {{ item.id }}</p>
+            <p><strong>{{ $t('patrolTask.taskName') }}:</strong> {{ item.taskName }}</p>
+            <p><strong>{{ $t('patrolTask.taskContent') }}:</strong> {{ item.taskContent }}</p>
+            <p><strong>{{ $t('patrolTask.taskTimePeriod') }}:</strong> {{ item.taskTimePeriod }}</p>
+            <p><strong>{{ $t('patrolTask.taskCycle') }}:</strong> {{ item.taskCycle }}</p>
+            <p><strong>{{ $t('patrolTask.taskStartDate') }}:</strong> {{ formatDate(item.taskStartDate) }}</p>
+            <p><strong>{{ $t('patrolTask.taskEndDate') }}:</strong> {{ formatDate(item.taskEndDate) }}</p>
+            <p><strong>{{ $t('patrolTask.updateTime') }}:</strong> {{ formatDate(item.updateTime) }}</p>
+            <p>
+              <strong>{{ $t('patrolTask.locations') }}:</strong>
+              <el-tag v-for="location in item.locations" :key="location.id" type="info" class="mr8">{{ location.locationDetails ? location.locationDetails.locationName : '未知地点' }}</el-tag>
+            </p>
+            <p>
+              <strong>{{ $t('patrolTask.participants') }}:</strong>
+              <el-tag v-for="participant in item.participants" :key="participant.id" type="success" class="mr8">{{ participant.userDetails ? participant.userDetails.userName : '未知用户' }}</el-tag>
+            </p>
+            <el-button class="expand-button" type="text" @click="toggleDetails(item)">
+              <i :class="item.showDetails ? 'el-icon-arrow-up' : 'el-icon-arrow-down'"></i>
+            </el-button>
+            <div v-if="item.showDetails" class="button-container">
+              <el-button type="success" size="mini" @click="handleUpdate(item)" v-hasPermi="['patrol:task:edit']">{{ $t('patrolTask.edit') }}</el-button>
+              <el-button type="danger" size="mini" @click="handleDelete(item)" v-hasPermi="['patrol:task:remove']">{{ $t('patrolTask.delete') }}</el-button>
+              <el-button type="primary" size="mini" @click="handleViewRecords(item)" v-hasPermi="['patrol:task:query']">{{ $t('patrolTask.viewRecords') }}</el-button>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <el-table v-else v-loading="loading" :data="patrolTaskList" @selection-change="handleSelectionChange" @sort-change="handleSortChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column v-if="visibleColumns.includes('id')" label="任务编号" prop="id" width="120" sortable />
-      <el-table-column v-if="visibleColumns.includes('taskName')" label="任务名称" prop="taskName" :show-overflow-tooltip="true" width="150" sortable />
-      <el-table-column v-if="visibleColumns.includes('taskContent')" label="任务内容" prop="taskContent" :show-overflow-tooltip="true" width="200" sortable />
-      <el-table-column v-if="visibleColumns.includes('taskTimePeriod')" label="任务时间段" prop="taskTimePeriod" width="180" sortable />
-      <el-table-column v-if="visibleColumns.includes('taskCycle')" label="任务周期" prop="taskCycle" width="180" sortable />
-      <el-table-column v-if="visibleColumns.includes('taskStartDate')" label="任务开始日期" prop="taskStartDate" width="180" sortable>
+      <el-table-column v-if="visibleColumns.includes('id')" :label="$t('patrolTask.taskId')" prop="id" width="120" sortable />
+      <el-table-column v-if="visibleColumns.includes('taskName')" :label="$t('patrolTask.taskName')" prop="taskName" :show-overflow-tooltip="true" width="150" sortable />
+      <el-table-column v-if="visibleColumns.includes('taskContent')" :label="$t('patrolTask.taskContent')" prop="taskContent" :show-overflow-tooltip="true" width="200" sortable />
+      <el-table-column v-if="visibleColumns.includes('taskTimePeriod')" :label="$t('patrolTask.taskTimePeriod')" prop="taskTimePeriod" width="180" sortable />
+      <el-table-column v-if="visibleColumns.includes('taskCycle')" :label="$t('patrolTask.taskCycle')" prop="taskCycle" width="180" sortable />
+      <el-table-column v-if="visibleColumns.includes('taskStartDate')" :label="$t('patrolTask.taskStartDate')" prop="taskStartDate" width="180" sortable>
         <template slot-scope="scope">
           {{ formatDate(scope.row.taskStartDate) }}
         </template>
       </el-table-column>
-      <el-table-column v-if="visibleColumns.includes('taskEndDate')" label="任务结束日期" prop="taskEndDate" width="180" sortable>
+      <el-table-column v-if="visibleColumns.includes('taskEndDate')" :label="$t('patrolTask.taskEndDate')" prop="taskEndDate" width="180" sortable>
         <template slot-scope="scope">
           {{ formatDate(scope.row.taskEndDate) }}
         </template>
       </el-table-column>
-      <el-table-column v-if="visibleColumns.includes('updateTime')" label="更新时间" prop="updateTime" width="180" sortable>
+      <el-table-column v-if="visibleColumns.includes('updateTime')" :label="$t('patrolTask.updateTime')" prop="updateTime" width="180" sortable>
         <template slot-scope="scope">
           {{ formatDate(scope.row.updateTime) }}
         </template>
       </el-table-column>
-      <el-table-column v-if="visibleColumns.includes('locations')" label="任务地点" prop="locations" width="200">
+      <el-table-column v-if="visibleColumns.includes('locations')" :label="$t('patrolTask.locations')" prop="locations" width="200">
         <template slot-scope="scope">
           <el-tag v-for="location in scope.row.locations" :key="location.id" type="info" class="mr8">{{ location.locationDetails ? location.locationDetails.locationName : '未知地点' }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column v-if="visibleColumns.includes('participants')" label="任务参与人员" prop="participants" width="200">
+      <el-table-column v-if="visibleColumns.includes('participants')" :label="$t('patrolTask.participants')" prop="participants" width="200">
         <template slot-scope="scope">
           <el-tag v-for="participant in scope.row.participants" :key="participant.id" type="success" class="mr8">{{ participant.userDetails ? participant.userDetails.userName : '未知用户' }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+      <el-table-column :label="$t('patrolTask.actions')" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-dropdown>
             <el-button type="text" size="mini">
@@ -120,10 +153,13 @@
             </el-button>
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item @click.native="handleUpdate(scope.row)" v-hasPermi="['patrol:task:edit']">
-                <i class="el-icon-edit"></i> 修改
+                <i class="el-icon-edit"></i> {{ $t('patrolTask.edit') }}
               </el-dropdown-item>
               <el-dropdown-item @click.native="handleDelete(scope.row)" v-hasPermi="['patrol:task:remove']">
-                <i class="el-icon-delete"></i> 删除
+                <i class="el-icon-delete"></i> {{ $t('patrolTask.delete') }}
+              </el-dropdown-item>
+              <el-dropdown-item @click.native="handleViewRecords(scope.row)" v-hasPermi="['patrol:task:query']">
+                <i class="el-icon-view"></i> {{ $t('patrolTask.viewRecords') }}
               </el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
@@ -142,19 +178,19 @@
     <!-- 添加或修改巡逻任务对话框 -->
     <el-dialog :title="title" :visible.sync="open" :width="isMobile ? '100%' : '600px'" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="120px">
-        <el-form-item label="任务编号" prop="id">
-          <el-input v-model="form.id" placeholder="任务编号" disabled />
+        <el-form-item :label="$t('patrolTask.taskId')" prop="id">
+          <el-input v-model="form.id" :placeholder="$t('patrolTask.taskId')" disabled />
         </el-form-item>
-        <el-form-item label="任务名称" prop="taskName">
-          <el-input v-model="form.taskName" placeholder="请输入任务名称" />
+        <el-form-item :label="$t('patrolTask.taskName')" prop="taskName">
+          <el-input v-model="form.taskName" :placeholder="$t('patrolTask.enterTaskName')" />
         </el-form-item>
-        <el-form-item label="任务内容" prop="taskContent">
-          <el-input v-model="form.taskContent" placeholder="请输入任务内容" />
+        <el-form-item :label="$t('patrolTask.taskContent')" prop="taskContent">
+          <el-input v-model="form.taskContent" :placeholder="$t('patrolTask.enterTaskContent')" />
         </el-form-item>
-        <el-form-item label="任务时间段" prop="taskTimePeriod">
+        <el-form-item :label="$t('patrolTask.taskTimePeriod')" prop="taskTimePeriod">
           <el-time-picker
             v-model="form.taskStartTime"
-            placeholder="开始时间"
+            :placeholder="$t('patrolTask.startTime')"
             :picker-options="{ selectableRange: '00:00:00 - 23:59:59' }"
             format="HH:mm"
             value-format="HH:mm"
@@ -162,84 +198,113 @@
           />
           <el-time-picker
             v-model="form.taskEndTime"
-            placeholder="结束时间"
+            :placeholder="$t('patrolTask.endTime')"
             :picker-options="{ selectableRange: '00:00:00 - 23:59:59' }"
             format="HH:mm"
             value-format="HH:mm"
             style="width: 45%;"
           />
         </el-form-item>
-        <el-form-item label="任务周期" prop="taskCycleType">
-          <el-select v-model="form.taskCycleType" placeholder="请选择任务周期" style="width: 100%;">
-            <el-option label="每天" value="每天"></el-option>
-            <el-option label="每周" value="每周"></el-option>
-            <el-option label="每月" value="每月"></el-option>
+        <el-form-item :label="$t('patrolTask.taskCycleType')" prop="taskCycleType">
+          <el-select v-model="form.taskCycleType" :placeholder="$t('patrolTask.selectTaskCycleType')" style="width: 100%;">
+            <el-option :label="$t('patrolTask.daily')" value="每天"></el-option>
+            <el-option :label="$t('patrolTask.weekly')" value="每周"></el-option>
+            <el-option :label="$t('patrolTask.monthly')" value="每月"></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item v-if="form.taskCycleType === '每周'" label="选择星期" prop="taskCycle">
-          <el-select v-model="form.taskCycle" placeholder="请选择星期" style="width: 100%;">
-            <el-option label="周一" value="周一"></el-option>
-            <el-option label="周二" value="周二"></el-option>
-            <el-option label="周三" value="周三"></el-option>
-            <el-option label="周四" value="周四"></el-option>
-            <el-option label="周五" value="周五"></el-option>
-            <el-option label="周六" value="周六"></el-option>
-            <el-option label="周日" value="周日"></el-option>
+        <el-form-item v-if="form.taskCycleType === '每周'" :label="$t('patrolTask.selectWeek')" prop="taskCycle">
+          <el-select v-model="form.taskCycle" :placeholder="$t('patrolTask.selectWeek')" style="width: 100%;">
+            <el-option :label="$t('patrolTask.monday')" value="周一"></el-option>
+            <el-option :label="$t('patrolTask.tuesday')" value="周二"></el-option>
+            <el-option :label="$t('patrolTask.wednesday')" value="周三"></el-option>
+            <el-option :label="$t('patrolTask.thursday')" value="周四"></el-option>
+            <el-option :label="$t('patrolTask.friday')" value="周五"></el-option>
+            <el-option :label="$t('patrolTask.saturday')" value="周六"></el-option>
+            <el-option :label="$t('patrolTask.sunday')" value="周日"></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item v-if="form.taskCycleType === '每月'" label="选择日期" prop="taskCycle">
-          <el-select v-model="form.taskCycle" placeholder="请选择日期" style="width: 100%;">
+        <el-form-item v-if="form.taskCycleType === '每月'" :label="$t('patrolTask.selectDate')" prop="taskCycle">
+          <el-select v-model="form.taskCycle" :placeholder="$t('patrolTask.selectDate')" style="width: 100%;">
             <el-option v-for="day in 31" :key="day" :label="`${day}号`" :value="`${day}号`"></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="任务开始日期" prop="taskStartDate">
-          <el-date-picker v-model="form.taskStartDate" type="date" placeholder="选择日期" style="width: 100%;" />
+        <el-form-item :label="$t('patrolTask.taskStartDate')" prop="taskStartDate">
+          <el-date-picker v-model="form.taskStartDate" type="date" :placeholder="$t('patrolTask.selectDate')" style="width: 100%;" />
         </el-form-item>
-        <el-form-item label="任务结束日期" prop="taskEndDate">
-          <el-date-picker v-model="form.taskEndDate" type="date" placeholder="选择日期" style="width: 100%;" />
+        <el-form-item :label="$t('patrolTask.taskEndDate')" prop="taskEndDate">
+          <el-date-picker v-model="form.taskEndDate" type="date" :placeholder="$t('patrolTask.selectDate')" style="width: 100%;" />
         </el-form-item>
-        <el-form-item label="任务地点" prop="locations">
-          <el-select v-model="form.locationIds" multiple placeholder="请选择任务地点" style="width: 100%;">
+        <el-form-item :label="$t('patrolTask.locations')" prop="locations">
+          <el-select v-model="form.locationIds" multiple :placeholder="$t('patrolTask.selectLocations')" style="width: 100%;">
             <el-option v-for="location in locationList" :key="location.id" :label="location.locationName" :value="location.id"></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="任务参与人员" prop="participants">
-          <el-select v-model="form.participantIds" multiple placeholder="请选择任务参与人员" style="width: 100%;">
+        <el-form-item :label="$t('patrolTask.participants')" prop="participants">
+          <el-select v-model="form.participantIds" multiple :placeholder="$t('patrolTask.selectParticipants')" style="width: 100%;">
             <el-option v-for="participant in participantList" :key="participant.userId" :label="participant.userName" :value="participant.userId"></el-option>
           </el-select>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="submitForm">确 定</el-button>
-        <el-button @click="cancel">取 消</el-button>
+        <el-button type="primary" @click="submitForm">{{ $t('patrolTask.confirm') }}</el-button>
+        <el-button @click="cancel">{{ $t('patrolTask.cancel') }}</el-button>
       </div>
     </el-dialog>
 
-    <el-dialog title="字段设置" :visible.sync="showColumnSettings" :width="isMobile ? '100%' : '300px'">
+    <el-dialog :title="$t('patrolTask.columnSettings')" :visible.sync="showColumnSettings" :width="isMobile ? '100%' : '300px'">
       <el-checkbox-group v-model="visibleColumns">
         <el-row>
-          <el-col :span="12"><el-checkbox label="id">任务编号</el-checkbox></el-col>
-          <el-col :span="12"><el-checkbox label="taskName">任务名称</el-checkbox></el-col>
-          <el-col :span="12"><el-checkbox label="taskContent">任务内容</el-checkbox></el-col>
-          <el-col :span="12"><el-checkbox label="taskTimePeriod">任务时间段</el-checkbox></el-col>
-          <el-col :span="12"><el-checkbox label="taskCycle">任务周期</el-checkbox></el-col>
-          <el-col :span="12"><el-checkbox label="taskStartDate">任务开始日期</el-checkbox></el-col>
-          <el-col :span="12"><el-checkbox label="taskEndDate">任务结束日期</el-checkbox></el-col>
-          <el-col :span="12"><el-checkbox label="updateTime">更新时间</el-checkbox></el-col>
-          <el-col :span="12"><el-checkbox label="locations">任务地点</el-checkbox></el-col>
-          <el-col :span="12"><el-checkbox label="participants">任务参与人员</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="id">{{ $t('patrolTask.taskId') }}</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="taskName">{{ $t('patrolTask.taskName') }}</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="taskContent">{{ $t('patrolTask.taskContent') }}</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="taskTimePeriod">{{ $t('patrolTask.taskTimePeriod') }}</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="taskCycle">{{ $t('patrolTask.taskCycle') }}</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="taskStartDate">{{ $t('patrolTask.taskStartDate') }}</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="taskEndDate">{{ $t('patrolTask.taskEndDate') }}</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="updateTime">{{ $t('patrolTask.updateTime') }}</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="locations">{{ $t('patrolTask.locations') }}</el-checkbox></el-col>
+          <el-col :span="12"><el-checkbox label="participants">{{ $t('patrolTask.participants') }}</el-checkbox></el-col>
         </el-row>
       </el-checkbox-group>
       <div slot="footer" class="dialog-footer">
         <el-button @click="showColumnSettings = false">关闭</el-button>
       </div>
     </el-dialog>
+
+    <el-dialog :title="isMobile ? '打卡记录' : '打卡记录'" :visible.sync="recordDialogVisible" :width="isMobile ? '100%' : '800px'">
+      <el-table :data="recordList" style="width: 100%">
+        <el-table-column prop="checkInTime" :label="$t('patrolTask.checkInTime')" width="180" sortable>
+          <template slot-scope="scope">
+            {{ formatDate(scope.row.checkInTime) }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="participantName" :label="$t('patrolTask.participantName')" />
+        <el-table-column prop="checkInLocationName" :label="$t('patrolTask.checkInLocationName')" />
+        <el-table-column prop="checkInInfo" :label="$t('patrolTask.checkInInfo')" />
+        <el-table-column prop="checkInImage" :label="$t('patrolTask.checkInImage')">
+          <template slot-scope="scope">
+            <el-button type="text" :style="{ color: scope.row.checkInImage ? '' : 'gray' }" @click="scope.row.checkInImage ? viewImage(scope.row.checkInImage) : null">
+              {{ scope.row.checkInImage ? '查看图片' : '暂无' }}
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="recordDialogVisible = false">关闭</el-button>
+      </div>
+    </el-dialog>
+
+    <el-dialog title="图片查看" :visible.sync="showImageDialog" :width="isMobile ? '100%' : '600px'">
+      <img :src="imageSrc" alt="图片" style="width: 100%;" />
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="showImageDialog = false">关闭</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import { listPatrolTask, getPatrolTask, delPatrolTask, addPatrolTask, updatePatrolTask, exportPatrolTask,listLocations,listParticipants } from "@/api/patrol/task/patrolTask";
-
+import { listPatrolTask, getPatrolTask, delPatrolTask, addPatrolTask, updatePatrolTask, exportPatrolTask, listLocations, listParticipants, listPatrolTaskRecords } from "@/api/patrol/task/patrolTask";
 
 export default {
   name: "PatrolTask",
@@ -290,33 +355,33 @@ export default {
       // 表单校验
       rules: {
         taskName: [
-          { required: true, message: "任务名称不能为空", trigger: "blur" }
+          { required: true, message: this.$t('patrolTask.enterTaskName'), trigger: "blur" }
         ],
         taskContent: [
-          { required: true, message: "任务内容不能为空", trigger: "blur" }
+          { required: true, message: this.$t('patrolTask.enterTaskContent'), trigger: "blur" }
         ],
         taskTimePeriod: [
           { validator: this.validateTimePeriod, trigger: "change" }
         ],
         taskCycleType: [
-          { required: true, message: "任务周期不能为空", trigger: "change" }
+          { required: true, message: this.$t('patrolTask.selectTaskCycleType'), trigger: "change" }
         ],
         taskCycle: [
-          { required: true, message: "任务周期不能为空", trigger: "change" }
+          { required: true, message: this.$t('patrolTask.selectTaskCycle'), trigger: "change" }
         ],
         taskStartDate: [
-          { required: true, message: "任务开始日期不能为空", trigger: "change" },
+          { required: true, message: this.$t('patrolTask.selectDate'), trigger: "change" },
           { validator: this.validateDateRange, trigger: "change" }
         ],
         taskEndDate: [
-          { required: true, message: "任务结束日期不能为空", trigger: "change" },
+          { required: true, message: this.$t('patrolTask.selectDate'), trigger: "change" },
           { validator: this.validateDateRange, trigger: "change" }
         ],
         locationIds: [
-          { required: true, message: "任务地点不能为空", trigger: "change" }
+          { required: true, message: this.$t('patrolTask.selectLocations'), trigger: "change" }
         ],
         participantIds: [
-          { required: true, message: "任务参与人员不能为空", trigger: "change" }
+          { required: true, message: this.$t('patrolTask.selectParticipants'), trigger: "change" }
         ]
       },
       visibleColumns: ['taskName', 'taskContent', 'taskTimePeriod', 'taskCycle', 'taskStartDate', 'taskEndDate', 'locations', 'participants'],
@@ -326,7 +391,11 @@ export default {
       },
       locationList: [],
       participantList: [],
-      showColumnSettings: false
+      showColumnSettings: false,
+      recordDialogVisible: false,
+      recordList: [],
+      showImageDialog: false,
+      imageSrc: ''
     };
   },
   computed: {
@@ -406,7 +475,7 @@ export default {
     handleAdd() {
       this.reset();
       this.open = true;
-      this.title = "添加巡逻任务";
+      this.title = this.$t('patrolTask.add');
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
@@ -444,7 +513,7 @@ export default {
         });
 
         this.open = true;
-        this.title = "修改巡逻任务";
+        this.title = this.$t('patrolTask.edit');
       });
     },
     /** 提交按钮 */
@@ -457,13 +526,13 @@ export default {
           this.form.participants = this.form.participantIds.map(id => ({ taskId: this.form.id, participantId: id }));
           if (this.isUpdate()) {
             updatePatrolTask(this.form).then(response => {
-              this.$modal.msgSuccess("修改成功");
+              this.$modal.msgSuccess(this.$t('patrolTask.editSuccess'));
               this.open = false;
               this.getList();
             });
           } else {
             addPatrolTask(this.form).then(response => {
-              this.$modal.msgSuccess("新增成功");
+              this.$modal.msgSuccess(this.$t('patrolTask.addSuccess'));
               this.open = false;
               this.getList();
             });
@@ -478,11 +547,11 @@ export default {
     /** 删除按钮操作 */
     handleDelete(row) {
       const ids = row.id || this.ids;
-      this.$modal.confirm('是否确认删除任务编号为"' + ids + '"的数据项？').then(function() {
+      this.$modal.confirm(this.$t('patrolTask.deleteConfirm', { ids })).then(function() {
         return delPatrolTask(ids);
       }).then(() => {
         this.getList();
-        this.$modal.msgSuccess("删除成功");
+        this.$modal.msgSuccess(this.$t('patrolTask.deleteSuccess'));
       }).catch(() => {});
     },
     /** 导出按钮操作 */
@@ -527,24 +596,133 @@ export default {
     },
     validateTimePeriod(rule, value, callback) {
       if (!this.form.taskStartTime || !this.form.taskEndTime) {
-        callback(new Error("任务时间段不能为空"));
+        callback(new Error(this.$t('patrolTask.taskTimePeriodRequired')));
       } else if (this.form.taskStartTime > this.form.taskEndTime) {
-        callback(new Error("开始时间不能大于结束时间"));
+        callback(new Error(this.$t('patrolTask.startTimeGreaterThanEndTime')));
       } else {
         callback();
       }
     },
     validateDateRange(rule, value, callback) {
       if (this.form.taskStartDate && this.form.taskEndDate && this.form.taskStartDate > this.form.taskEndDate) {
-        callback(new Error("任务开始日期不能大于任务结束日期"));
+        callback(new Error(this.$t('patrolTask.startDateGreaterThanEndDate')));
       } else {
         callback();
       }
+    },
+    /** 查看打卡记录 */
+    handleViewRecords(row) {
+      const taskId = row.id;
+      listPatrolTaskRecords(taskId).then(response => {
+        this.recordList = response.data;
+        this.recordDialogVisible = true;
+      });
+    },
+    /** 查看图片 */
+    viewImage(src) {
+      this.imageSrc = `https://schoolmaintenancestorage.blob.core.windows.net/schoolblodfiles/image/${src}`;
+      this.showImageDialog = true;
+    },
+    toggleDetails(item) {
+      this.$set(item, 'showDetails', !item.showDetails);
     }
   }
 };
 </script>
 
 <style scoped>
-/* 样式与 all 全部工单的 index 保持一致 */
+.card-content {
+  font-size: 12px;
+  padding: 10px;
+  position: relative;
+  min-height: 200px; /* 调整卡片高度 */
+}
+.box-card {
+  margin-bottom: 10px;
+}
+.inline-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.inline-fields > * {
+  flex: 1;
+}
+.button-container {
+  position: absolute;
+  top: 10px;
+  right: 40px; /* 将全部操作按钮左移 */
+}
+.expand-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+/* .collapse-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+} */
+.spacer {
+  height: 20px; /* 调整按钮与底部的距离 */
+}
+.mobile-date-picker .el-picker-panel {
+  left: 0 !important;
+  right: 0 !important;
+  margin: auto !important;
+  width: 100% !important;
+  max-width: 300px !important;
+}
+.chat-container {
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 10px;
+}
+.chat-message {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+}
+.chat-message-left {
+  align-items: flex-start;
+}
+.chat-message-right {
+  align-items: flex-end;
+}
+.chat-message-center {
+  align-items: center;
+  text-align: center;
+}
+.chat-message-content {
+  background-color: #f1f1f1;
+  padding: 10px;
+  border-radius: 5px;
+  max-width: 60%;
+  word-wrap: break-word;
+  width: fit-content;
+}
+.chat-message-content-center {
+  background-color: transparent;
+  max-width: 100%;
+  font-size: 12px;
+  color: #888;
+}
+.chat-message-info {
+  font-size: 10px;
+  color: #888;
+  margin-top: 5px;
+}
+.chat-message-right .chat-message-content {
+  background-color: #d1ecf1;
+  align-self: flex-end;
+}
+.chat-message-right .chat-message-info {
+  text-align: right;
+}
+.chat-message-info-center {
+  font-size: 10px;
+  color: #888;
+  margin-top: 2px;
+  margin-bottom: 15px;
+}
 </style>

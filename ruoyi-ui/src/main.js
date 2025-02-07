@@ -37,6 +37,8 @@ import DictTag from '@/components/DictTag'
 import VueMeta from 'vue-meta'
 // 字典数据组件
 import DictData from '@/components/DictData'
+// // 国际化组件
+import i18n from './i18n';
 
 // 全局方法挂载
 Vue.prototype.getDicts = getDicts
@@ -82,5 +84,6 @@ new Vue({
   el: '#app',
   router,
   store,
+  i18n,
   render: h => h(App)
 })

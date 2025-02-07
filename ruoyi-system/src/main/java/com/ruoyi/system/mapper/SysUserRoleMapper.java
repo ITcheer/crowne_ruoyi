@@ -2,6 +2,8 @@ package com.ruoyi.system.mapper;
 
 import java.util.List;
 import org.apache.ibatis.annotations.Param;
+
+import com.ruoyi.common.core.domain.entity.SysUser;
 import com.ruoyi.system.domain.SysUserRole;
 
 /**
@@ -59,4 +61,13 @@ public interface SysUserRoleMapper
      * @return 结果
      */
     public int deleteUserRoleInfos(@Param("roleId") Long roleId, @Param("userIds") Long[] userIds);
+
+
+        /**
+     * 根据角色ID查询用户列表
+     * 
+     * @param roleId 角色ID
+     * @return 用户信息集合
+     */
+    public List<SysUser> selectUserListByRoleId(Long roleId);
 }

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.SysEngineeringPatrolTaskParticipantMapper">
+    <resultMap id="SysEngineeringPatrolTaskParticipantResult" type="com.ruoyi.system.domain.SysEngineeringPatrolTaskParticipant">
+        <id property="taskId" column="Task_ID" />
+        <result property="participantId" column="Participant_ID" />
+    </resultMap>
+
+    <sql id="selectPatrolTaskParticipantVo">
+        select Task_ID, Participant_ID
+        from sys_engineering_patrol_task_participant
+    </sql>
+
+    <select id="selectPatrolTaskParticipantById" parameterType="String" resultMap="SysEngineeringPatrolTaskParticipantResult">
+        select Task_ID, Participant_ID
+        from sys_engineering_patrol_task_participant
+        where Task_ID = #{taskId}
+    </select>
+
+    <select id="selectPatrolTaskParticipantList" parameterType="com.ruoyi.system.domain.SysEngineeringPatrolTaskParticipant" resultMap="SysEngineeringPatrolTaskParticipantResult">
+        <include refid="selectPatrolTaskParticipantVo"/>
+        <where>
+            <if test="taskId != null">
+                and Task_ID = #{taskId}
+            </if>
+            <if test="participantId != null">
+                and Participant_ID = #{participantId}
+            </if>
+        </where>
+        order by Task_ID
+    </select>
+
+    <insert id="insertPatrolTaskParticipant" parameterType="com.ruoyi.system.domain.SysEngineeringPatrolTaskParticipant">
+        insert into sys_engineering_patrol_task_participant (
+            Task_ID, Participant_ID
+        ) values (
+            #{taskId}, #{participantId}
+        )
+    </insert>
+
+    <insert id="batchInsertPatrolTaskParticipant" parameterType="java.util.List">
+        insert into sys_engineering_patrol_task_participant (Task_ID, Participant_ID)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.taskId}, #{item.participantId})
+        </foreach>
+    </insert>
+
+    <update id="updatePatrolTaskParticipant" parameterType="com.ruoyi.system.domain.SysEngineeringPatrolTaskParticipant">
+        update sys_engineering_patrol_task_participant
+        set Participant_ID = #{participantId}
+        where Task_ID = #{taskId}
+    </update>
+
+    <delete id="deletePatrolTaskParticipantById" parameterType="String">
+        delete from sys_engineering_patrol_task_participant where Task_ID = #{taskId}
+    </delete>
+
+    <delete id="deletePatrolTaskParticipantByIds" parameterType="String">
+        delete from sys_engineering_patrol_task_participant where Task_ID in
+        <foreach collection="array" item="taskId" open="(" separator="," close=")">
+            #{taskId}
+        </foreach>
+    </delete>
+</mapper>

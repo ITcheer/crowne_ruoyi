@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.SysEngineeringPatrolTaskRecordMapper">
+    <!-- 对应表: SysEngineeringPatrolTaskRecord -->
+    <resultMap id="SysEngineeringPatrolTaskRecordResult" type="com.ruoyi.system.domain.SysEngineeringPatrolTaskRecord">
+        <id property="id" column="ID" />
+        <result property="taskId" column="Task_ID" />
+        <result property="participantId" column="Participant_ID" />
+        <result property="checkInInfo" column="Check_In_Info" />
+        <result property="checkInImage" column="Check_In_Image" />
+        <result property="checkInTime" column="Check_In_Time" />
+        <result property="relatedParameter" column="Related_Parameter" />
+        <result property="checkInLocationId" column="Check_In_Location_Id" />
+    </resultMap>
+
+    <sql id="selectPatrolTaskRecordVo">
+        select ID, Task_ID, Participant_ID, Check_In_Info, Check_In_Image, Check_In_Time, Related_Parameter, Check_In_Location_Id
+        from sys_engineering_patrol_task_record
+    </sql>
+
+    <select id="selectPatrolTaskRecordById" parameterType="String" resultMap="SysEngineeringPatrolTaskRecordResult">
+        select ID, Task_ID, Participant_ID, Check_In_Info, Check_In_Image, Check_In_Time, Related_Parameter, Check_In_Location_Id
+        from sys_engineering_patrol_task_record
+        where ID = #{id}
+    </select>
+
+    <select id="selectPatrolTaskRecordList" parameterType="com.ruoyi.system.domain.SysEngineeringPatrolTaskRecord" resultMap="SysEngineeringPatrolTaskRecordResult">
+        <include refid="selectPatrolTaskRecordVo"/>
+        <where>
+            <if test="taskId != null">
+                and Task_ID = #{taskId}
+            </if>
+            <if test="participantId != null">
+                and Participant_ID = #{participantId}
+            </if>
+            <if test="checkInInfo != null">
+                and Check_In_Info like concat('%', #{checkInInfo}, '%')
+            </if>
+        </where>
+        order by Check_In_Time desc
+    </select>
+
+    <select id="selectPatrolTaskRecordListByTaskId" parameterType="String" resultMap="SysEngineeringPatrolTaskRecordResult">
+        select ID, Task_ID, Participant_ID, Check_In_Info, Check_In_Image, Check_In_Time, Related_Parameter, Check_In_Location_Id
+        from sys_engineering_patrol_task_record
+        where Task_ID = #{taskId}
+        order by Check_In_Time desc
+    </select>
+
+    <insert id="insertPatrolTaskRecord" parameterType="com.ruoyi.system.domain.SysEngineeringPatrolTaskRecord">
+        insert into sys_engineering_patrol_task_record (
+            ID, Task_ID, Participant_ID, Check_In_Info, Check_In_Image, Check_In_Time, Related_Parameter, Check_In_Location_Id
+        ) values (
+            #{id}, #{taskId}, #{participantId}, #{checkInInfo}, #{checkInImage}, #{checkInTime}, #{relatedParameter}, #{checkInLocationId}
+        )
+    </insert>
+
+    <update id="updatePatrolTaskRecord" parameterType="com.ruoyi.system.domain.SysEngineeringPatrolTaskRecord">
+        update sys_engineering_patrol_task_record
+        set Task_ID = #{taskId},
+            Participant_ID = #{participantId},
+            Check_In_Info = #{checkInInfo},
+            Check_In_Image = #{checkInImage},
+            Check_In_Time = #{checkInTime},
+            Related_Parameter = #{relatedParameter},
+            Check_In_Location_Id = #{checkInLocationId}
+        where ID = #{id}
+    </update>
+
+    <delete id="deletePatrolTaskRecordById" parameterType="String">
+        delete from sys_engineering_patrol_task_record where ID = #{id}
+    </delete>
+
+    <delete id="deletePatrolTaskRecordByIds" parameterType="String">
+        delete from sys_engineering_patrol_task_record where ID in
+        <foreach collection="array" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

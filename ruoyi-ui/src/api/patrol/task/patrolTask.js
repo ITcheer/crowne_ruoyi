@@ -78,3 +78,11 @@ export function listParticipants() {
     method: 'get'
   })
 }
+
+// 查询巡逻任务打卡记录
+export function listPatrolTaskRecords(taskId) {
+  return request({
+    url: `/patrol/task/${taskId}/records`,
+    method: 'get'
+  })
+}

@@ -69,10 +69,11 @@ public class SysProfileController extends BaseController
         {
             return error("修改用户'" + loginUser.getUsername() + "'失败，手机号码已存在");
         }
-        if (StringUtils.isNotEmpty(user.getEmail()) && !userService.checkEmailUnique(currentUser))
-        {
-            return error("修改用户'" + loginUser.getUsername() + "'失败，邮箱账号已存在");
-        }
+        /*crowne 暂时关闭 */
+        // if (StringUtils.isNotEmpty(user.getEmail()) && !userService.checkEmailUnique(currentUser))
+        // {
+        //     return error("修改用户'" + loginUser.getUsername() + "'失败，邮箱账号已存在");
+        // }
         if (userService.updateUserProfile(currentUser) > 0)
         {
             // 更新缓存用户信息
